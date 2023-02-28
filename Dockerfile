@@ -1,6 +1,5 @@
 # FROM nvidia/cuda:11.3.1-runtime-ubuntu20.04
 FROM 368590945923.dkr.ecr.us-east-1.amazonaws.com/schematicabot-worker:base
-COPY environment.yaml /environment.yaml
 ENV CONDA_DIR /opt/conda
 
 RUN apt update && \
@@ -10,15 +9,14 @@ RUN apt update && \
      export PATH=$CONDA_DIR/bin:$PATH
 
 ENV  PATH /opt/conda/bin:$PATH
-
+COPY ./src /src
 RUN echo "export PATH=$CONDA_DIR/bin:$PATH" >> ~/.bashrc && \
   echo 'conda activate ldm' >> ~/.bashrc && \
+  cd ./src && \
   conda env create -f /environment.yaml -v && \
-  conda init bash
+  conda init bash && \
+  conda install pip -y
 
-# RUN python setup.py install
-COPY ./src /src
-RUN cd ./src && conda install pip -y
 
 SHELL ["conda", "run", "-n", "ldm", "/bin/bash", "-c"]
 # RUN python -c "import omegaconf"
