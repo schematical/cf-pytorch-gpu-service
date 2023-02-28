@@ -13,6 +13,7 @@ COPY ./src /src
 RUN echo "export PATH=$CONDA_DIR/bin:$PATH" >> ~/.bashrc && \
   echo 'conda activate ldm' >> ~/.bashrc && \
   cd ./src && \
+  ls -la && \
   conda env create -f ./environment.yaml -v && \
   conda init bash && \
   conda install pip -y
