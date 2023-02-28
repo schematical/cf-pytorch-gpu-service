@@ -1,4 +1,6 @@
-FROM 368590945923.dkr.ecr.us-east-1.amazonaws.com/schematicabot-worker:base # nvidia/cuda:11.3.1-runtime-ubuntu20.04
+# FROM nvidia/cuda:11.3.1-runtime-ubuntu20.04
+FROM 368590945923.dkr.ecr.us-east-1.amazonaws.com/schematicabot-worker:base
+
 RUN apt update
 RUN apt install --no-install-recommends -y build-essential gcc wget git libcudnn8
 
