@@ -18,8 +18,7 @@ RUN echo "export PATH=$CONDA_DIR/bin:$PATH" >> ~/.bashrc && \
 
 # RUN python setup.py install
 COPY ./src /src
-RUN cd ./src
-RUN conda install pip -y
+RUN cd ./src && conda install pip -y
 
 SHELL ["conda", "run", "-n", "ldm", "/bin/bash", "-c"]
 # RUN python -c "import omegaconf"
