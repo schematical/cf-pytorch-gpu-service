@@ -9,7 +9,7 @@ RUN apt update && \
      export PATH=$CONDA_DIR/bin:$PATH
 
 ENV  PATH /opt/conda/bin:$PATH
-COPY ./src /src
+COPY ./src/Dreambooth-Stable-Diffusion /src
 RUN echo "export PATH=$CONDA_DIR/bin:$PATH" >> ~/.bashrc && \
   echo 'conda activate ldm' >> ~/.bashrc && \
   cd ./src && \
