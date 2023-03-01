@@ -13,7 +13,7 @@ ENV CONDA_DIR /opt/conda
 
 ENV  PATH /opt/conda/bin:$PATH
 
-COPY ./src/Dreambooth-Stable-Diffusion /src
+# COPY ./src/Dreambooth-Stable-Diffusion /src
 # COPY ./src/model.ckpt /src
 
 RUN echo "export PATH=$CONDA_DIR/bin:$PATH" >> ~/.bashrc && \
