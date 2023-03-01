@@ -1,3 +1,5 @@
+#start with the basics
+
 apt update && \
   apt install --no-install-recommends -y build-essential gcc wget git libcudnn8 curl unzip && \
   wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
@@ -6,9 +8,11 @@ apt update && \
   curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
   unzip awscliv2.zip && \
   ./aws/install
-
+git clone https://github.com/XavierXiao/Dreambooth-Stable-Diffusion
 echo "export PATH=$CONDA_DIR/bin:$PATH" >> ~/.bashrc && \
   echo 'conda activate ldm' >> ~/.bashrc
+#
+conda env create -f ./environment.yaml -v
 
 conda init bash && \
   conda install pip -y
