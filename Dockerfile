@@ -30,8 +30,5 @@ SHELL ["conda", "run", "-n", "ldm", "/bin/bash", "-c"]
 
 
 
-
-# CMD ["conda", "run", "--no-capture-output", "-n", "ldm", "python", "scripts/stable_txt2img.py", "--ddim_eta 0.0 --n_samples 1 --n_iter 16 --scale 10.0 --ddim_steps 50  --ckpt Public-Prompts-Pixel-Model.ckpt --prompt "]
-# CMD ["/bin/bash", "-c", "conda activate ldm && python scripts/stable_txt2img.py --ddim_eta 0.0 --n_samples 1 --n_iter 16 --scale 10.0 --ddim_steps 50  --ckpt Public-Prompts-Pixel-Model.ckpt --prompt \"a beautiful tropical beach, isometric, 16bitscene\" && ls /outputs/tst-2img-sample/samples "]
-CMD ["conda activate ldm && python scripts/stable_txt2img.py --ddim_eta 0.0 --n_samples 1 --n_iter 16 --scale 10.0 --ddim_steps 50  --ckpt model.ckpt --prompt \"a beautiful tropical beach, isometric, 16bitscene\" && ls /outputs/tst-2img-sample/samples "]
-# EXPOSE 8080
+CMD ["pwd && ls -la && cd /home && ls -la && cd /home/ubuntu && ls -la && cd /home/ubuntu/docker && ls -la" ]
+#CMD ["conda activate ldm && python scripts/stable_txt2img.py --ddim_eta 0.0 --n_samples 1 --n_iter 16 --scale 10.0 --ddim_steps 50  --ckpt model.ckpt --prompt \"a beautiful tropical beach, isometric, 16bitscene\" && ls /outputs/tst-2img-sample/samples "]
