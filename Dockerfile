@@ -22,10 +22,11 @@ RUN echo "export PATH=$CONDA_DIR/bin:$PATH" >> ~/.bashrc && \
   conda install pip -y
 
 
+
 SHELL ["conda", "run", "-n", "ldm", "/bin/bash", "-c"]
 # RUN python -c "import omegaconf"
 
-RUN aws s3 cp s3://sc-cloud-formation-v1/model.ckpt ./model.ckpt
+
 
 
 # CMD ["conda", "run", "--no-capture-output", "-n", "ldm", "python", "scripts/stable_txt2img.py", "--ddim_eta 0.0 --n_samples 1 --n_iter 16 --scale 10.0 --ddim_steps 50  --ckpt Public-Prompts-Pixel-Model.ckpt --prompt "]
