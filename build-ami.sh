@@ -34,3 +34,7 @@ conda env create -f ./environment.yaml -v
 
 conda init bash && \
   conda install pip -y
+
+
+# For now we are pre pulling the model
+aws s3 cp s3://sc-cloud-formation-v1/model.ckpt ./model.ckpt
