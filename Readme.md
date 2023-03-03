@@ -16,14 +16,23 @@ https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-agent-config.htm
 #### Notes on Optimizing Docker Image Size:
 https://www.augmentedmind.de/2022/02/06/optimize-docker-image-size/#:~:text=Often%20a%20Docker%20image%20becomes,not%20to%20run%20your%20application.
 https://docs.aws.amazon.com/AmazonECS/latest/developerguide/bind-mounts.html
-
-### Error: `Reason : "RESOURCE:GPU"
+## Notes:
+#### On Instance Run Command:
+```
+sudo docker run --rm --runtime=nvidia --gpus all 368590945923.dkr.ecr.us-east-1.amazonaws.com/dreambooth-worker-v1-prod-us-east-1:prod -it bash
+```
+#### Error: `Reason : "RESOURCE:GPU"
 In case anyone else stumbles upon this in the future if your using a custom AMI and the ECS agent you need to make sure that you set ECS_ENABLE_GPU_SUPPORT to true in your /etc/ecs/ecs.config or via env vars like the link below.
 https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-agent-config.html#:~:text=ECS_ENABLE_GPU_SUPPORT
 
-### TODO: 
+### If the Container Instance is failing to register make sure the `/var/lib/ecs/data/agent.db` is not saved on the AMI: 
 Rebuild base AMI with this https://stackoverflow.com/questions/39018180/aws-ecs-agent-wont-start
+```
 sudo rm /var/lib/ecs/data/agent.db
-
+sudo systemctl restart ecs
+sudo systemctl status ecs
+```
 Possibly remove on start: https://askubuntu.com/questions/814/how-to-run-scripts-on-start-up
 
+
+#### Optimize for SPOT
