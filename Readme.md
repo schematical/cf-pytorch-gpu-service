@@ -21,5 +21,9 @@ https://docs.aws.amazon.com/AmazonECS/latest/developerguide/bind-mounts.html
 In case anyone else stumbles upon this in the future if your using a custom AMI and the ECS agent you need to make sure that you set ECS_ENABLE_GPU_SUPPORT to true in your /etc/ecs/ecs.config or via env vars like the link below.
 https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-agent-config.html#:~:text=ECS_ENABLE_GPU_SUPPORT
 
-### 
+### TODO: 
+Rebuild base AMI with this https://stackoverflow.com/questions/39018180/aws-ecs-agent-wont-start
+sudo rm /var/lib/ecs/data/agent.db
+
+Possibly remove on start: https://askubuntu.com/questions/814/how-to-run-scripts-on-start-up
 
