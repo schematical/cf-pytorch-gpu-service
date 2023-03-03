@@ -1,24 +1,24 @@
 cd /home/ubuntu/src
 # echo 'conda run -n ldm /bin/bash -c conda activate ldm'
 # conda run -n ldm /bin/bash -c conda activate ldm
-echo "\n\n!!!!!!conda init bash\n\n"
+echo "!!!!!!conda init bash"
 conda init bash
 
 
-echo "\n\n!!!!! cat /root/.bashrc\n\n"
+echo "!!!!! cat /root/.bashrc"
 cat /root/.bashrc
 
-echo "\n\n!!!!! conda activate ldm\n\n"
+echo "!!!!! conda activate ldm"
 conda activate ldm
-echo "\n\n!!!!Sending it\n"
-python /home/ubuntu/src/scripts/stable_txt2img.py --outdir $1 --ddim_eta 0.0 --n_samples 1 --n_iter 4 --scale 10.0 --ddim_steps 50  --ckpt ./model.ckpt --prompt $2
+echo "!!!!Sending it. Dir: $1 Prompt: $2"
+python /home/ubuntu/src/scripts/stable_txt2img.py --outdir "$1" --ddim_eta 0.0 --n_samples 1 --n_iter 4 --scale 10.0 --ddim_steps 50  --ckpt ./model.ckpt --prompt "$2"
 
-echo "\n\n!!!!Pushing to S3\n"
+echo "!!!!Pushing to S3"
 aws s3 cp /home/ubuntu/src/outputs/$1 s3://$S3_BUCKET/$1 --recursive
 
-echo "\n\n!!!!Cleaning Up\n"
+echo "!!!!Cleaning Up"
 rm -rf /home/ubuntu/src/outputs/$1
 
-echo "\n\n!!!!!!DONE\n\n"
+echo "!!!!!!DONE"
 #["conda", "run", "-n", "ldm",  "/bin/bash",  "-c",  "sh", "/home/ubuntu/src/test.sh"]
 

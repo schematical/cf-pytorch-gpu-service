@@ -17,6 +17,9 @@ https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-agent-config.htm
 https://www.augmentedmind.de/2022/02/06/optimize-docker-image-size/#:~:text=Often%20a%20Docker%20image%20becomes,not%20to%20run%20your%20application.
 https://docs.aws.amazon.com/AmazonECS/latest/developerguide/bind-mounts.html
 ## Notes:
+#### Random Resources:
+https://medium.com/@michael.smith.qs2/how-to-use-gpus-quickly-and-cheaply-with-aws-batch-and-pytorch-1209320c4e6b
+https://towardsdatascience.com/a-complete-guide-to-building-a-docker-image-serving-a-machine-learning-system-in-production-d8b5b0533bde
 #### On Instance Run Command:
 ```
 sudo docker run --rm --runtime=nvidia --gpus all 368590945923.dkr.ecr.us-east-1.amazonaws.com/dreambooth-worker-v1-prod-us-east-1:prod -it bash
