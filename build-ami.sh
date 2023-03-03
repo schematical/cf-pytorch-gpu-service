@@ -36,5 +36,23 @@ conda init bash && \
   conda install pip -y
 
 
+
+
+
+echo "rm /var/lib/ecs/data/agent.db && systemctl restart ecs" >> /home/ubuntu/boot.sh
+
+
+#write out current crontab
+crontab -l > mycron
+#echo new cron into cron file
+echo "@reboot /home/ubuntu/boot.sh" >> mycron
+#install new cron file
+crontab mycron
+rm mycron
+
+
+
 # For now we are pre pulling the model
 aws s3 cp s3://sc-cloud-formation-v1/model.ckpt ./model.ckpt
+
+
