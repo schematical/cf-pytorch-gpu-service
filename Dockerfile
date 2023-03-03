@@ -23,8 +23,8 @@ RUN echo "export PATH=$CONDA_DIR/bin:$PATH" >> ~/.bashrc
   # conda env create -f ./environment.yaml -v && \
 
 
-
-VOLUME ["/home/ubuntu"]
+VOLUME ["/home/ubuntu/src"]
+VOLUME ["/home/ubuntu/.conda"]
 SHELL ["conda", "run", "-n", "ldm", "/bin/bash", "-c"]
 # RUN python -c "import omegaconf"
 
