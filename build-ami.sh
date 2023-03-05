@@ -39,16 +39,22 @@ conda init bash && \
 
 
 
-echo "rm /var/lib/ecs/data/agent.db && systemctl restart ecs" >> /home/ubuntu/boot.sh
+sudo echo "rm /var/lib/ecs/data/agent.db -f && systemctl restart ecs" >> /home/ubuntu/boot.sh
+sudo chmod a+x /home/ubuntu/boot.sh
+sudo echo "[Unit]
+Description=Forces clean the ECS Agent DB on boot
 
+[Service]
+ExecStart=/bin/bash /home/ubuntu/boot.sh
 
-#write out current crontab
-crontab -l > mycron
-#echo new cron into cron file
-echo "@reboot /home/ubuntu/boot.sh" >> mycron
-#install new cron file
-crontab mycron
-rm mycron
+[Install]
+WantedBy=multi-user.target /etc/systemd/system/schematical-boot.service
+Alias=schematical-boot.service
+"   >> /etc/systemd/system/schematical-boot.service
+
+sudo systemctl daemon-reload
+sudo systemctl enable schematical-boot.service
+sudo systemctl status schematical-boot.service
 
 
 
