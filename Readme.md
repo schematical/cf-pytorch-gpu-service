@@ -32,12 +32,19 @@ https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-agent-config.htm
 Rebuild base AMI with this https://stackoverflow.com/questions/39018180/aws-ecs-agent-wont-start
 ```
 sudo rm /var/lib/ecs/data/agent.db
-sudo systemctl stop ecs
+sudo systemctl restart ecs
 sudo systemctl status ecs
 ```
 Possibly remove on start: https://askubuntu.com/questions/814/how-to-run-scripts-on-start-up
+
+tail /var/log/ecs/ecs-agent.log - n 100
 
 #### Cache Checkpoints:
 /root/.cache/torch/hub/checkpoints
 /root/.cache
 #### Optimize for SPOT
+
+
+
+
+sudo mount -t efs -o tls,iam fs-0c837273b2deff27c.efs.us-east-1.amazonaws.com /mnt/efs/
