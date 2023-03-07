@@ -47,4 +47,4 @@ tail /var/log/ecs/ecs-agent.log - n 100
 
 
 
-sudo mount -t efs -o tls,iam fs-0c837273b2deff27c.efs.us-east-1.amazonaws.com /mnt/efs/
+sudo mount -t efs -o tls,accesspoint=fs-08dbc4cbdd42b5d3b fs-08dbc4cbdd42b5d3b.efs.us-east-1.amazonaws.com /mnt/efs/
