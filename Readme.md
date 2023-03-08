@@ -1,5 +1,51 @@
 
+## Run Pytorch Cost Effectively At Scale With AWS Batch
+### Overview: 
 
+
+#### What is AWS Batch?
+AWS Batch manages scaling up and down EC2 resources automatically to handle load when you need it and scale down to cut costs when you don't need compute resources.
+
+It also queues up and runs many jobs in the for of Docker Tasks.
+
+#### What is CloudFormation?
+An AWS Service to build AWS Infrastructure as code so it can be version controlled and used to enforce standards easily. 
+
+
+
+### Getting Started:
+#### Step 1(Optional) - Create the AMI:
+So pytorch, all the other deps and the models all together are too big to run in Docker on AWS Batch there is a limit to what it can handle.
+There are a few things we can do to fix this.
+
+1) Install the Deps, Source Code, and Models on an EC2 Instance, create an AMI from it, then mount the dirs with those files in the Docker container running on ECS.
+
+
+
+Other scripts:
+https://github.com/schematical/sc-cloudformation
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### 
 
 I created the custom AMI from Ubutu 20.04 with GPU Support. Specifically `ami-045a50425ac09a3f5` and Instance type `g4dn.xlarge`.
 
@@ -37,7 +83,7 @@ sudo systemctl status ecs
 ```
 Possibly remove on start: https://askubuntu.com/questions/814/how-to-run-scripts-on-start-up
 
-tail /var/log/ecs/ecs-agent.log - n 100
+tail /var/log/ecs/*.log -n 100
 
 #### Cache Checkpoints:
 /root/.cache/torch/hub/checkpoints

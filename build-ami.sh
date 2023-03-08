@@ -17,13 +17,16 @@ sudo systemctl enable  ecs # https://linuxconfig.org/how-to-start-service-on-boo
 # sudo apt-get install -y build-essential gcc wget git curl unzip && \
 wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
 /bin/bash ~/miniconda.sh -b -p /opt/conda \ && \
-export PATH=/opt/conda/bin:$PATH && \
+echo "export PATH=/opt/conda/bin:$PATH" >> ~/.bashrc && \
+export PATH=/opt/conda/bin:$PATH
+
+
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
 unzip awscliv2.zip && \
 ./aws/install
 
 git clone https://github.com/XavierXiao/Dreambooth-Stable-Diffusion
-echo "export PATH=/opt/conda/bin:$PATH" >> ~/.bashrc && \
+
 #  echo 'conda init bash' >> ~/.bashrc  && \
 #  echo 'conda activate ldm' >> ~/.bashrc
 
