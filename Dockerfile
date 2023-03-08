@@ -1,4 +1,3 @@
-# FROM nvidia/cuda:11.3.1-runtime-ubuntu20.04
 FROM 368590945923.dkr.ecr.us-east-1.amazonaws.com/schematicabot-worker:base
 ENV CONDA_DIR /opt/conda
 

@@ -11,6 +11,12 @@ phases:
       - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+
+# Conda stuff
+      - build-essential gcc wget git libcudnn8 curl
+      - wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
+      - /bin/bash ~/miniconda.sh -b -p /opt/conda \ && \
+      - export PATH=/opt/conda/bin:$PATH
   build:
     commands:
       # THIS IS BUILDING ON THE BUILD DOCKER TASK
