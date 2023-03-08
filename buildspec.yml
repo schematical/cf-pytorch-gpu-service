@@ -23,6 +23,7 @@ phases:
       - git clone https://github.com/XavierXiao/Dreambooth-Stable-Diffusion
       - mv Dreambooth-Stable-Diffusion src
       - cd src
+      - ls -la
       - conda env create -f ./environment.yaml -v
       - conda init bash
       - conda install pip -y
