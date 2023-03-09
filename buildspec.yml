@@ -4,6 +4,8 @@ phases:
   pre_build:
     commands:
       - cd /codebuild/output/mnt
+      - ls -la
+      - rm -rf /codebuild/output/mnt/*
       - pwd
       # - mkdir src
       # - cd src
