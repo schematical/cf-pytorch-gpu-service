@@ -3,6 +3,7 @@ version: 0.2
 phases:
   pre_build:
     commands:
+      - cd /home/ubuntu/src
       - pwd
       # - mkdir src
       # - cd src
@@ -21,8 +22,9 @@ phases:
   build:
     commands:
       # THIS IS BUILDING ON THE BUILD DOCKER TASK
+
       - git clone https://github.com/XavierXiao/Dreambooth-Stable-Diffusion
-      - mv Dreambooth-Stable-Diffusion src
+      - mv Dreambooth-Stable-Diffusion /home/ubuntu/src
       - cd src
       - ls -la
       - conda env create -f ./environment.yaml -v
