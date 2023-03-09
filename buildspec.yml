@@ -24,7 +24,7 @@ phases:
       # THIS IS BUILDING ON THE BUILD DOCKER TASK
 
       - git clone https://github.com/XavierXiao/Dreambooth-Stable-Diffusion
-      - mv Dreambooth-Stable-Diffusion /codebuild/output/mnt
+      - mv Dreambooth-Stable-Diffusion /codebuild/output/mnt/src
       - cd src
       - ls -la
       - conda env create -f ./environment.yaml -v
@@ -35,6 +35,7 @@ phases:
       - cd ..
       - ls -la
       # THIS IS FROM BEFORE
+      - cd $CODEBUILD_SRC_DIR
       - docker build -t $REPOSITORY_URI:$IMAGE_TAG .
       - docker tag $REPOSITORY_URI:$IMAGE_TAG $REPOSITORY_URI:$IMAGE_TAG
   post_build:
