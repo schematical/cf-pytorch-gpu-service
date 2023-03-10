@@ -7,8 +7,8 @@ phases:
 
       - ls -la
       - rm -rf /codebuild/output/mnt/*
-      - rm -rf /opt/conda
-      - ln -s /codebuild/output/mnt/opt_conda /opt/conda
+      # - rm -rf /opt/conda
+      # - ln -s /codebuild/output/mnt/opt_conda /opt/conda
       - pwd
       - mkdir /codebuild/output/mnt/conda_cache
       - mkdir /codebuild/output/mnt/root_cache
@@ -27,8 +27,8 @@ phases:
 # Conda stuff
       - apt install --no-install-recommends -y build-essential gcc wget git curl # libcudnn8
       - wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
-      - /bin/bash ~/miniconda.sh -b -p /opt/conda/install \ && \
-      - export PATH=/opt/conda/install/bin:$PATH
+      - /bin/bash ~/miniconda.sh -b -p /opt/conda \ && \
+      - export PATH=/opt/conda/bin:$PATH
   build:
     commands:
       # THIS IS BUILDING ON THE BUILD DOCKER TASK
@@ -41,7 +41,7 @@ phases:
       - conda init bash
       - conda install pip -y
       - pip install -e .
-      - mv /opt/conda/envs/ldm/codebuild/output/mnt/ldm_cache
+      - mv /opt/conda/envs/ldm /codebuild/output/mnt/ldm_cache
       - aws s3 cp s3://sc-cloud-formation-v1/model.ckpt ./model.ckpt
 
       - cd ..
