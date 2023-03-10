@@ -37,8 +37,8 @@ phases:
       - conda env create -f ./environment.yaml -v
       - conda init bash
       - conda install pip -y
-
-      - cp /opt/conda/envs/ldm/* -rf /codebuild/output/mnt/ldm_cache/
+      - pip install -e .
+      - mv /opt/conda/envs/ldm/codebuild/output/mnt/ldm_cache
       - aws s3 cp s3://sc-cloud-formation-v1/model.ckpt ./model.ckpt
 
       - cd ..
@@ -53,5 +53,9 @@ phases:
       - echo Writing image definitions file...
       - printf '[{"name":"%s","imageUri":"%s"}]' $ECS_CONTAINER_NAME $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
       - cat imagedefinitions.json
+      - cd ~/
+      - ls -la
+      - cd /root
+      - ls -la
 artifacts:
   files: imagedefinitions.json
