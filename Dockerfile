@@ -23,8 +23,9 @@ RUN echo "export PATH=$CONDA_DIR/bin:$PATH" >> ~/.bashrc
 #  ls -la  && \
   # conda env create -f ./environment.yaml -v && \
 RUN rm -rf /root/.cache && \
-    rm -rf /home/ubuntu/.cach
-VOLUME ["/opt/conda"]
+    rm -rf /home/ubuntu/.cach \
+
+VOLUME ["/opt/conda/envs/ldm"]
 VOLUME ["/home/ubuntu/src"]
 VOLUME ["/home/ubuntu/.conda"]
 VOLUME ["/root/.cache"]
