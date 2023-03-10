@@ -2,14 +2,13 @@ FROM 368590945923.dkr.ecr.us-east-1.amazonaws.com/schematicabot-worker:base
 ENV CONDA_DIR /opt/conda
 
 RUN apt update && \
-    apt install --no-install-recommends -y curl unzip && \
+    apt install --no-install-recommends -y curl unzip build-essential gcc wget libcudnn8 && \
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
     unzip awscliv2.zip && \
-    ./aws/install
-# build-essential gcc wget git libcudnn8 curl
-#    wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
-#    /bin/bash ~/miniconda.sh -b -p /opt/conda \ && \
-#    export PATH=/opt/conda/bin:$PATH && \
+    ./aws/install  && \
+    wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
+    /bin/bash ~/miniconda.sh -b -p /opt/conda \ && \
+    export PATH=/opt/conda/bin:$PATH && \
 
 ENV  PATH /opt/conda/bin:$PATH
 
