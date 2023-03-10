@@ -1,6 +1,22 @@
+# FROM nvidia/cuda:11.3.1-runtime-ubuntu20.04
 FROM 368590945923.dkr.ecr.us-east-1.amazonaws.com/schematicabot-worker:base
 ENV CONDA_DIR /opt/conda
 ARG DEBIAN_FRONTEND=noninteractive
+
+
+COPY ./node /home/ubnutu/node
+RUN ls -la /home/ubnutu/node && \
+    ls -la /home/ubnutu/node/scripts && \
+    chmod a+x /home/ubnutu/node/scripts/activate_ldm.sh && \
+    chmod a+x /home/ubuntu/node/scripts/download_model.sh && \
+    chmod a+x /home/ubuntu/node/scripts/install_conda.sh && \
+    chmod a+x /home/ubuntu/node/scripts/install_src.sh && \
+    chmod a+x /home/ubuntu/node/scripts/run.sh && \
+    echo "export PATH=$CONDA_DIR/bin:$PATH" >> ~/.bashrc && \
+    rm -rf /root/.cache && \
+    rm -rf /home/ubuntu/.cache \
+
+
 RUN apt update && \
     apt install --no-install-recommends -y curl unzip build-essential gcc wget libcudnn8 nodejs && \
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
@@ -12,15 +28,7 @@ RUN apt update && \
 
 ENV  PATH /opt/conda/bin:$PATH
 
-COPY ./node /home/ubnutu/node
-RUN chmod a+x /home/ubuntu/node/scripts/activate_ldm.sh && \
-    chmod a+x /home/ubuntu/node/scripts/download_model.sh && \
-    chmod a+x /home/ubuntu/node/scripts/install_conda.sh && \
-    chmod a+x /home/ubuntu/node/scripts/install_src.sh && \
-    chmod a+x /home/ubuntu/node/scripts/run.sh && \
-    echo "export PATH=$CONDA_DIR/bin:$PATH" >> ~/.bashrc && \
-    rm -rf /root/.cache && \
-    rm -rf /home/ubuntu/.cache \
+
 
 VOLUME ["/opt/conda/envs/ldm"]
 VOLUME ["/home/ubuntu/src"]
