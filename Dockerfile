@@ -4,17 +4,17 @@ ENV CONDA_DIR /opt/conda
 ARG DEBIAN_FRONTEND=noninteractive
 
 
-COPY ./node /home/ubnutu/node
-RUN ls -la /home/ubnutu/node && \
-    ls -la /home/ubnutu/node/scripts && \
-    chmod a+x /home/ubnutu/node/scripts/activate_ldm.sh && \
+COPY ./node /home/ubuntu/node
+RUN ls -la /home/ubuntu/node && \
+    ls -la /home/ubuntu/node/scripts && \
+    chmod a+x /home/ubuntu/node/scripts/activate_ldm.sh && \
     chmod a+x /home/ubuntu/node/scripts/download_model.sh && \
     chmod a+x /home/ubuntu/node/scripts/install_conda.sh && \
     chmod a+x /home/ubuntu/node/scripts/install_src.sh && \
     chmod a+x /home/ubuntu/node/scripts/run.sh && \
     echo "export PATH=$CONDA_DIR/bin:$PATH" >> ~/.bashrc && \
     rm -rf /root/.cache && \
-    rm -rf /home/ubuntu/.cache \
+    rm -rf /home/ubuntu/.cache
 
 
 RUN apt update && \
