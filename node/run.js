@@ -3,10 +3,10 @@ const exec = util.promisify(require('node:child_process').exec);
 const fs = require('fs');
 
 const { spawn } = require('node:child_process');
-const SRC_DIR = '/home/ubuntu/src';
+const SRC_DIR = '/home/ubuntu/node';
 const CONDA_LDM_DIR = '/opt/conda/envs/ldm';
 const CONDA_DIR = '/opt/conda';
-const MODEL_PATH = '/home/ubuntu/src/model.ckpt';
+const MODEL_PATH = '/home/ubuntu/node/model.ckpt';
 
 
 const condaExists = fs.existsSync(CONDA_DIR);
@@ -52,7 +52,7 @@ if (!modelExists) {
 
 
 
-const mainCmd1 = spawn("conda",["run","--no-capture-output", "-n","ldm","/bin/bash","-c","/home/ubuntu/run.sh test \"a mummy's tomb, isometric, 16bitscene\""]);
+const mainCmd1 = spawn("conda",["run","--no-capture-output", "-n","ldm","/bin/bash","-c","/home/ubuntu/node/scripts/run.sh test \"a mummy's tomb, isometric, 16bitscene\""]);
 
 mainCmd1.stdout.on('data', (data) => {
     console.log(`stdout: ${data}`);

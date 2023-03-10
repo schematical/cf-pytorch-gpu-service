@@ -20,5 +20,5 @@ echo "!!!!Cleaning Up"
 rm -rf /home/ubuntu/src/outputs/$1
 
 echo "!!!!!!DONE"
-#["conda", "run", "-n", "ldm",  "/bin/bash",  "-c",  "sh", "/home/ubuntu/src/test.sh"]
+#["conda", "run", "-n", "ldm",  "/bin/bash",  "-c",  "sh", "/home/ubuntu/node/test.sh"]
 

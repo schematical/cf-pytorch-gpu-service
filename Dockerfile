@@ -12,17 +12,10 @@ RUN apt update && \
 
 ENV  PATH /opt/conda/bin:$PATH
 
-# COPY ./src/Dreambooth-Stable-Diffusion /src
-# COPY ./src/model.ckpt /src
-COPY ./run.sh /home/ubuntu/run.sh
-RUN chmod a+x home/ubuntu/run.sh
-
-RUN echo "export PATH=$CONDA_DIR/bin:$PATH" >> ~/.bashrc
-  # echo 'conda activate ldm' >> ~/.bashrc && \
-#  cd ./src && \
-#  ls -la  && \
-  # conda env create -f ./environment.yaml -v && \
-RUN rm -rf /root/.cache && \
+COPY node /home/ubnutu/node
+RUN chmod a+x /home/ubuntu/node/scripts/*.sh && \
+    echo "export PATH=$CONDA_DIR/bin:$PATH" >> ~/.bashrc && \
+    rm -rf /root/.cache && \
     rm -rf /home/ubuntu/.cach \
 
 VOLUME ["/opt/conda/envs/ldm"]
@@ -35,6 +28,6 @@ SHELL ["conda", "run", "-n", "ldm", "/bin/bash", "-c"]
 # RUN python -c "import omegaconf"
 
 
-# CMD ["pwd && ls -la && cd /home && ls -la && cd /home/ubuntu && ls -la && cd /home/ubuntu/src && ls -la" ]
+# CMD ["pwd && ls -la && cd /home && ls -la && cd /home/ubuntu && ls -la && cd /home/ubuntu/node && ls -la" ]
 CMD ["node", "/user/home/node/run.js"]
- #      python /home/ubuntu/src/scripts/stable_txt2img.py --ddim_eta 0.0 --n_samples 1 --n_iter 16 --scale 10.0 --ddim_steps 50  --ckpt model.ckpt --prompt \"a beautiful tropical beach, isometric, 16bitscene\" && ls /home/ubuntu/src/outputs/tst-2img-sample/samples "]
+ #      python /home/ubuntu/node/scripts/stable_txt2img.py --ddim_eta 0.0 --n_samples 1 --n_iter 16 --scale 10.0 --ddim_steps 50  --ckpt model.ckpt --prompt \"a beautiful tropical beach, isometric, 16bitscene\" && ls /home/ubuntu/node/outputs/tst-2img-sample/samples "]

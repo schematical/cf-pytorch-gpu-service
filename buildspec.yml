@@ -27,8 +27,8 @@ phases:
       # THIS IS BUILDING ON THE BUILD DOCKER TASK
 
 #      - git clone https://github.com/XavierXiao/Dreambooth-Stable-Diffusion
-#      - mv Dreambooth-Stable-Diffusion /codebuild/output/mnt/src
-#      - cd /codebuild/output/mnt/src
+#      - mv Dreambooth-Stable-Diffusion /codebuild/output/mnt/node
+#      - cd /codebuild/output/mnt/node
 #      - ls -la
 #      - conda env create -f ./environment.yaml -v
 #      - conda init bash
