@@ -4,9 +4,11 @@ phases:
   pre_build:
     commands:
       - cd /codebuild/output/mnt
-      - ln -s /codebuild/output/mnt/opt_conda /opt/conda
+
       - ls -la
       - rm -rf /codebuild/output/mnt/*
+      - rm -rf /opt/conda
+      - ln -s /codebuild/output/mnt/opt_conda /opt/conda
       - pwd
       - mkdir /codebuild/output/mnt/conda_cache
       - mkdir /codebuild/output/mnt/root_cache
