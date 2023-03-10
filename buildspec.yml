@@ -4,6 +4,7 @@ phases:
   pre_build:
     commands:
       - cd /codebuild/output/mnt
+      - ln -s /codebuild/output/mnt/opt_conda /opt/conda
       - ls -la
       - rm -rf /codebuild/output/mnt/*
       - pwd
