@@ -12,11 +12,15 @@ RUN apt update && \
 
 ENV  PATH /opt/conda/bin:$PATH
 
-COPY node /home/ubnutu/node
-RUN chmod a+x /home/ubuntu/node/scripts/*.sh && \
+COPY ./node /home/ubnutu/node
+RUN chmod a+x /home/ubuntu/node/scripts/activate_ldm.sh && \
+    chmod a+x /home/ubuntu/node/scripts/download_model.sh && \
+    chmod a+x /home/ubuntu/node/scripts/install_conda.sh && \
+    chmod a+x /home/ubuntu/node/scripts/install_src.sh && \
+    chmod a+x /home/ubuntu/node/scripts/run.sh && \
     echo "export PATH=$CONDA_DIR/bin:$PATH" >> ~/.bashrc && \
     rm -rf /root/.cache && \
-    rm -rf /home/ubuntu/.cach \
+    rm -rf /home/ubuntu/.cache \
 
 VOLUME ["/opt/conda/envs/ldm"]
 VOLUME ["/home/ubuntu/src"]
