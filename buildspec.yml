@@ -32,7 +32,7 @@ phases:
 
       - git clone https://github.com/XavierXiao/Dreambooth-Stable-Diffusion
       - mv Dreambooth-Stable-Diffusion /codebuild/output/mnt/src
-      - cd src
+      - cd /codebuild/output/mnt/src
       - ls -la
       - conda env create -f ./environment.yaml -v
       - conda init bash
