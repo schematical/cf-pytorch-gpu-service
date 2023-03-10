@@ -12,19 +12,17 @@ RUN ls -la /home/ubuntu/node && \
     chmod a+x /home/ubuntu/node/scripts/install_conda.sh && \
     chmod a+x /home/ubuntu/node/scripts/install_src.sh && \
     chmod a+x /home/ubuntu/node/scripts/run.sh && \
-    echo "export PATH=$CONDA_DIR/bin:$PATH" >> ~/.bashrc && \
-    rm -rf /root/.cache && \
-    rm -rf /home/ubuntu/.cache
-
-
-RUN apt update && \
+    apt update && \
     apt install --no-install-recommends -y curl unzip build-essential gcc wget libcudnn8 nodejs && \
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
     unzip awscliv2.zip && \
     ./aws/install  && \
     wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
     /bin/bash ~/miniconda.sh -b -p /opt/conda \ && \
-    export PATH=/opt/conda/bin:$PATH
+    export PATH=/opt/conda/bin:$PATH &&\
+    echo "export PATH=/opt/conda/bin:$PATH" >> ~/.bashrc && \
+    rm -rf /root/.cache && \
+    rm -rf /home/ubuntu/.cache
 
 ENV  PATH /opt/conda/bin:$PATH
 
@@ -41,5 +39,5 @@ SHELL ["conda", "run", "-n", "ldm", "/bin/bash", "-c"]
 
 
 # CMD ["pwd && ls -la && cd /home && ls -la && cd /home/ubuntu && ls -la && cd /home/ubuntu/node && ls -la" ]
-CMD ["node", "/user/home/node/run.js"]
+CMD ["node", "/home/ubuntu/node/run.js"]
  #      python /home/ubuntu/node/scripts/stable_txt2img.py --ddim_eta 0.0 --n_samples 1 --n_iter 16 --scale 10.0 --ddim_steps 50  --ckpt model.ckpt --prompt \"a beautiful tropical beach, isometric, 16bitscene\" && ls /home/ubuntu/node/outputs/tst-2img-sample/samples "]
