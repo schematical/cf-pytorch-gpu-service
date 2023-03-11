@@ -69,7 +69,7 @@ const runSpawn = async (options) => {
     await runSpawn({
         path: '/home/ubuntu/node/scripts/run.sh',
         cmd: '/opt/conda/install/bin/conda',
-        args: ["run", "--no-capture-output", "-n", "ldm", "/bin/bash", "-c", `/home/ubuntu/node/scripts/run.sh ${process.argv[0]} \"${process.argv[1]}\" ${process.argv[2]}`]
+        args: ["run", "--no-capture-output", "-n", "ldm", "/bin/bash", "-c", `/home/ubuntu/node/scripts/run.sh ${process.argv[2]} \"${process.argv[3]}\" ${process.argv[4]}`]
     });
 // /opt/conda/envs
 })();
