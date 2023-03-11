@@ -3,9 +3,9 @@ const exec = util.promisify(require('child_process').exec);
 const fs = require('fs');
 
 const { spawn } = require('child_process');
-const SRC_DIR = '/home/ubuntu/node';
+const SRC_PATH = '/home/ubuntu/src/environment.yaml';
 const CONDA_LDM_DIR = '/opt/conda/envs/ldm';
-const CONDA_DIR = '/opt/conda';
+const CONDA_DIR = '/opt/conda/install';
 const MODEL_PATH = '/home/ubuntu/node/model.ckpt';
 const runSpawn = async (options) => {
     return new Promise((resolve, reject) => {
@@ -41,7 +41,7 @@ const runSpawn = async (options) => {
     }
 
 
-    const srcExists = fs.existsSync(SRC_DIR);
+    const srcExists = fs.existsSync(SRC_PATH);
     if (!srcExists) {
         await runSpawn({
             path: SRC_DIR,
@@ -56,7 +56,7 @@ const runSpawn = async (options) => {
         await runSpawn({
             path: CONDA_LDM_DIR,
             cmd: 'sh',
-            args: [`${__dirname}/scripts/install_src.sh`]
+            args: [`${__dirname}/scripts/activate_ldm.sh`]
         });
     }
 

@@ -28,7 +28,7 @@ ENV  PATH /opt/conda/bin:$PATH
 
 
 
-VOLUME ["/opt/conda/envs/ldm"]
+VOLUME ["/opt/conda"]
 VOLUME ["/home/ubuntu/src"]
 VOLUME ["/home/ubuntu/.conda"]
 VOLUME ["/root/.cache"]
