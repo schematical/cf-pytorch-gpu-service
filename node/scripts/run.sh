@@ -1,4 +1,4 @@
-cd /home/ubuntu/src
+cd /home/ubuntu/src/dreambooth
 # echo 'conda run -n ldm /bin/bash -c conda activate ldm'
 # conda run -n ldm /bin/bash -c conda activate ldm
 echo "!!!!!!conda init bash"
