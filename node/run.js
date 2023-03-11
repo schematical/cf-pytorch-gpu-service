@@ -4,9 +4,9 @@ const fs = require('fs');
 
 const { spawn } = require('child_process');
 const SRC_PATH = '/home/ubuntu/src/environment.yaml';
-const CONDA_LDM_DIR = '/opt/conda/envs/ldm';
+const CONDA_LDM_DIR = '/opt/conda/install/envs/ldm';
 const CONDA_DIR = '/opt/conda/install';
-const MODEL_PATH = '/home/ubuntu/node/model.ckpt';
+const MODEL_PATH = '/home/ubuntu/src/model.ckpt';
 const runSpawn = async (options) => {
     return new Promise((resolve, reject) => {
         console.log("Did not find " + options.path + " installing");
@@ -69,7 +69,7 @@ const runSpawn = async (options) => {
         });
     }
     await runSpawn({
-        path: MODEL_PATH,
+        path: '/home/ubuntu/node/scripts/run.sh',
         cmd: 'conda',
         args: ["run", "--no-capture-output", "-n", "ldm", "/bin/bash", "-c", "/home/ubuntu/node/scripts/run.sh test \"a mummy's tomb, isometric, 16bitscene\""]
     });
