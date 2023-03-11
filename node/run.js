@@ -1,7 +1,7 @@
 const fs = require('fs');
 
 const { spawn } = require('child_process');
-const SRC_PATH = '/home/ubuntu/src/environment.yaml';
+const SRC_PATH = '/home/ubuntu/src/dreambooth/environment.yaml';
 const CONDA_LDM_DIR = '/opt/conda/install/envs/ldm';
 const CONDA_DIR = '/opt/conda/install';
 const MODEL_PATH = '/home/ubuntu/src/model.ckpt';

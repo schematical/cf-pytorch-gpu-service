@@ -1,4 +1,4 @@
-cd /home/ubuntu/src
+cd /home/ubuntu/src/dreambooth
 ls -la
 conda env create -f ./environment.yaml -v
 conda init bash
