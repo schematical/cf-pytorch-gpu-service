@@ -2,14 +2,14 @@ cd /home/ubuntu/src
 # echo 'conda run -n ldm /bin/bash -c conda activate ldm'
 # conda run -n ldm /bin/bash -c conda activate ldm
 echo "!!!!!!conda init bash"
-conda init bash
+/opt/conda/install/bin/conda init bash
 
 
 # echo "!!!!! cat /root/.bashrc"
 # cat /root/.bashrc
 
-echo "!!!!! conda activate ldm"
-conda activate ldm
+# echo "!!!!! conda activate ldm"
+# conda activate ldm
 echo "!!!!Sending it. Dir: $1 Prompt: $2 Seed: $3"
 python /home/ubuntu/src/dreambooth/scripts/stable_txt2img.py --outdir "/home/ubuntu/src/outputs/$1" --ddim_eta 0.0 --n_samples 1 --n_iter 4 --scale 10.0 --ddim_steps 50 --seed $3 --ckpt ./model.ckpt --prompt "$2"
 
