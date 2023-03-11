@@ -13,7 +13,7 @@ RUN ls -la /home/ubuntu/node && \
     chmod a+x /home/ubuntu/node/scripts/install_src.sh && \
     chmod a+x /home/ubuntu/node/scripts/run.sh && \
     apt update && \
-    apt install --no-install-recommends -y curl unzip build-essential gcc wget libcudnn8 nodejs && \
+    apt install --no-install-recommends -y curl unzip build-essential gcc git wget libcudnn8 nodejs && \
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
     unzip awscliv2.zip && \
     ./aws/install  && \
