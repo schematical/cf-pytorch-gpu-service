@@ -1,8 +1,8 @@
 const util = require('util');
-const exec = util.promisify(require('node:child_process').exec);
+const exec = util.promisify(require('child_process').exec);
 const fs = require('fs');
 
-const { spawn } = require('node:child_process');
+const { spawn } = require('child_process');
 const SRC_DIR = '/home/ubuntu/node';
 const CONDA_LDM_DIR = '/opt/conda/envs/ldm';
 const CONDA_DIR = '/opt/conda';
