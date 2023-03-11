@@ -1,4 +1,4 @@
-const util = require('node:util');
+const util = require('util');
 const exec = util.promisify(require('node:child_process').exec);
 const fs = require('fs');
 
