@@ -1,6 +1,6 @@
 cd /home/ubuntu/src/dreambooth
 ls -la
-conda env create -f ./environment.yaml --prefix /opt/conda/install/envs/ldm -v
-conda init bash
-conda install pip -y
+/opt/conda/install/bin/conda env create -f ./environment.yaml --prefix /opt/conda/install/envs/ldm -v
+/opt/conda/install/bin/conda init bash
+/opt/conda/install/bin/conda install pip -y
 #pip install -e .
