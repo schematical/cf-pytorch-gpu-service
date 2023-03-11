@@ -44,7 +44,7 @@ const runSpawn = async (options) => {
     const srcExists = fs.existsSync(SRC_PATH);
     if (!srcExists) {
         await runSpawn({
-            path: SRC_DIR,
+            path: SRC_PATH,
             cmd: 'sh',
             args: [`${__dirname}/scripts/install_src.sh`]
         });
