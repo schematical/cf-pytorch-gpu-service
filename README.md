@@ -12,20 +12,67 @@ It also queues up and runs many jobs in the for of Docker Tasks.
 An AWS Service to build AWS Infrastructure as code so it can be version controlled and used to enforce standards easily. 
 
 
-
 ### Getting Started:
-#### Step 1(Optional) - Create the AMI:
-So pytorch, all the other deps and the models all together are too big to run in Docker on AWS Batch there is a limit to what it can handle.
-There are a few things we can do to fix this.
+#### Step 0 - Optional(Fork this repo):
+You can fork this repo and then [create a AWS CodeStar Connection](https://docs.aws.amazon.com/dtconsole/latest/userguide/connections-create.html) so that you can make edits to this.  
+The main reason for this is that you need to get access to the Github repo.
 
-1) Install the Deps, Source Code, and Models on an EC2 Instance, create an AMI from it, then mount the dirs with those files in the Docker container running on ECS.
+#### Step 1 - Boot it up:
+While being logged in to your AWS Account run the CloudFormation script by clicking the link below:
+
+[![](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://us-east-1.console.aws.amazon.com/cloudformation/home?region=eu-central-1#/stacks/create/review?templateURL=https://sc-cloud-formation-v1.s3.amazonaws.com/cf-pytorch-gpu-service.json&stackName=schematical-pytorch-gpu-service)
+
+The screen you navigate to on AWS CloudFormation should have a list of all the resources you will be booting up.
+##### CodeStarConnectionARN:
+https://docs.aws.amazon.com/dtconsole/latest/userguide/connections-create.html
+
+#### Step 2 - Test it:
+
+
+// Command line call to trigger the job
+
+#### Step 3 - Scale it:
+
+// MinCPU MaxCPU
+// Instance Size 
+
+
+### Support:
+Interested in supporting me as I maintain these free scripts? Click the link below:
+<a href="https://www.buymeacoffee.com/schematical" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
 
 
-Other scripts:
+
+
+
+### Need Help:
+
+#### Jump On The Discord:
+This stuff can be a bit complex. Luckily we have a small community of people that like to help.
+So head on over to the [Discord](https://discord.gg/F6cErPe6VJ) and feel free to ask any questions you might have.
+
+#### Need more help:
+I do consult on this so feel free to hop on over to [Schematical.com](https://schematical.com?utm_source=github_cf-pytorch-gpu-service) and signup for a consultation.  
+
+
+
+
+
+### Other scripts:
+I am working on standardizing some other scripts we commonly use with our consulting clients and 
+open sourcing them for anyone who wants to use them to use.
 https://github.com/schematical/sc-cloudformation
 
-nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2
+Of course if you want more hands on help with them or help training your team on how to use them feel free to reach out to us at [Schematical.com](https://schematical.com?utm_source=github_cf-pytorch-gpu-service). 
+
+
+
+
+
+### NOTES:
+It is NOT nessicary but if you are going to try the super advanced move of running a custom AMI
+I created the original custom AMI from Ubutu 20.04 with GPU Support. Specifically `ami-045a50425ac09a3f5` and Instance type `g4dn.xlarge`.
 
 
 
@@ -37,18 +84,6 @@ nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2
 
 
 
-
-
-
-
-
-
-
-
-
-### 
-
-I created the custom AMI from Ubutu 20.04 with GPU Support. Specifically `ami-045a50425ac09a3f5` and Instance type `g4dn.xlarge`.
 
 #### Helpful Links for building the AMI:
 
@@ -90,8 +125,5 @@ tail /var/log/ecs/*.log -n 100
 /root/.cache/torch/hub/checkpoints
 /root/.cache
 #### Optimize for SPOT
-
-
-
 
 sudo mount -t efs -o tls,accesspoint=fs-08dbc4cbdd42b5d3b fs-08dbc4cbdd42b5d3b.efs.us-east-1.amazonaws.com /mnt/efs/

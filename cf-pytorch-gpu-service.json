@@ -1,0 +1,1956 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Template",
+  "Parameters": {
+    "ServiceName": {
+      "Default": "pytorch-gpu-service-v1",
+      "Type": "String"
+    },
+    "Region": {
+      "Default": "us-east-1",
+      "Type": "String"
+    },
+    "Env": {
+      "Type": "String"
+    },
+    "CodePipelineArtifactStoreBucket": {
+      "Type": "String"
+    },
+    "ECSTaskExecutionIAMRole": {
+      "Type": "String"
+    },
+    "InstanceTypes": {
+      "Type": "String",
+      "Default": "g4dn.2xlarge"
+    },
+    "GitHubOwner": {
+      "Type": "String",
+      "Default": "schematical"
+    },
+    "GithubProjectName": {
+      "Type": "String",
+      "Default": "cf-pytorch-gpu-service"
+    },
+    "GithubSourceBranch": {
+      "Type": "String",
+      "Default": "main"
+    },
+    "CodeBuildImageURI": {
+      "Type": "String",
+      "Default": "aws/codebuild/standard:3.0"
+    },
+    "CodeBuildTimeout": {
+      "Type": "Number",
+      "Default": 5
+    },
+    "CodePipelineArtifactStoreBucket": {
+      "Type": "String"
+    },
+    "CodeStarConnectionARN": {
+      "Type": "String",
+      "Default": "arn:aws:codestar-connections:us-east-1:368590945923:connection/67d17ca5-a542-49db-9256-157204b67b1d"
+    }
+  },
+  "Resources": {
+    "OutputBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "ServiceName"
+              },
+              {
+                "Ref": "Env"
+              },
+              {
+                "Ref": "Region"
+              }
+
+            ]
+          ]
+        }
+      }
+    },
+    "BatchGPUComputeEnvironmentLaunchTemplate": {
+      "Type": "AWS::EC2::LaunchTemplate",
+      "Properties": {
+        "LaunchTemplateData": {
+          "UserData":"cm0gL3Zhci9saWIvZWNzL2RhdGEvYWdlbnQuZGIgLWYgJiYgc3lzdGVtY3RsIHJlc3RhcnQgZWNz"
+        },
+        "LaunchTemplateName":  {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "ServiceName"
+              },
+              {
+                "Ref": "Env"
+              },
+              {
+                "Ref": "Region"
+              },
+              "LaunchTemplate"
+            ]
+          ]
+        }
+      }
+    },
+    "BatchGPUComputeEnvironment":{
+      "Type" : "AWS::Batch::ComputeEnvironment",
+      "Properties" : {
+        "ComputeEnvironmentName" : {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "ServiceName"
+              },
+              {
+                "Ref": "Env"
+              },
+              {
+                "Ref": "Region"
+              }
+            ]
+          ]
+        },
+        "ComputeResources" :{
+          "AllocationStrategy":"BEST_FIT_PROGRESSIVE",
+          "Ec2Configuration" : [
+            {
+              "ImageType" : "ECS_AL2_NVIDIA"
+            },
+            {
+              "ImageType" : "ECS_AL2"
+            }
+          ],
+          "InstanceTypes" : [ {
+            "Ref": "InstanceTypes"
+          }],
+          "InstanceRole": {
+            "Fn::GetAtt" : [
+              "BatchGPUComputeEnvironmentInstanceProfile",
+              "Arn"
+            ]
+          },
+          "MaxvCpus" : 8,
+          "DesiredvCpus": 4,
+          "MinvCpus" : 0,
+          "SecurityGroupIds" : [
+            {"Ref": "BatchGPUComputeEnvironmentSecurityGroup"}
+          ],
+          "Subnets" : [
+            {
+              "Fn::ImportValue": {
+                "Fn::Sub": "${Region}-${Env}-PrivateSubnetA"
+              }
+            },
+            {
+              "Fn::ImportValue": {
+                "Fn::Sub": "${Region}-${Env}-PrivateSubnetB"
+              }
+            },
+            {
+              "Fn::ImportValue": {
+                "Fn::Sub": "${Region}-${Env}-PrivateSubnetC"
+              }
+            }
+          ],
+          "Tags" : {
+            "Service": {
+              "Ref": "ServiceName"
+            },
+            "Env": {
+              "Ref": "Env"
+            },
+            "Region": {
+              "Ref": "Region"
+            }
+          },
+          "Type" : "EC2",
+          "UpdateToLatestImageVersion" : true
+        },
+        "UpdatePolicy": {
+          "TerminateJobsOnUpdate": false,
+          "JobExecutionTimeoutMinutes": 30
+        },
+        "ServiceRole" : {
+          "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/aws-service-role/batch.amazonaws.com/AWSServiceRoleForBatch"
+        },
+        "State" : "ENABLED",
+        "Tags" : {
+          "Service": {
+            "Ref": "ServiceName"
+          },
+          "Env": {
+            "Ref": "Env"
+          },
+          "Region": {
+            "Ref": "Region"
+          }
+        },
+        "Type" : "MANAGED"
+      }
+    },
+    "BatchGPUComputeEnvironmentInstanceProfile": {
+      "Type" : "AWS::IAM::InstanceProfile",
+      "Properties" : {
+        "InstanceProfileName" :  {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "ServiceName"
+              },
+              "-compute-env-instance-profile-",
+              {
+                "Ref": "Env"
+              },
+              "-",
+              {
+                "Ref": "Region"
+              }
+            ]
+          ]
+        },
+        "Path" : "/",
+        "Roles" : [
+          {
+            "Ref": "BatchGPUComputeEnvironmentInstanceIAMRole"
+          }
+        ]
+      }
+    },
+    "BatchGPUComputeEnvironmentInstanceIAMRole": {
+      "Type" : "AWS::IAM::Role",
+      "Properties" : {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "ec2.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/",
+        "ManagedPolicyArns" : [
+          "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+        ],
+        "RoleName" :  {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "ServiceName"
+              },
+              "-compute-env-instance-",
+              {
+                "Ref": "Env"
+              },
+              "-",
+              {
+                "Ref": "Region"
+              }
+            ]
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": {
+              "Fn::Join": [
+                "-",
+                [
+                  {
+                    "Ref": "ServiceName"
+                  },
+                  {
+                    "Ref": "Env"
+                  },
+                  {
+                    "Ref": "Region"
+                  },
+                  "compute-env-policy"
+                ]
+              ]
+            },
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "EFSFileSystem",
+                        "Arn"
+                      ]
+                    }
+                  ],
+                  "Action": [
+                    "elasticfilesystem:DescribeMountTargets"
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "BatchGPUComputeEnvironmentSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupName": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "ServiceName"
+              },
+              {
+                "Ref": "Env"
+              },
+              {
+                "Ref": "Region"
+              }
+            ]
+          ]
+        },
+        "GroupDescription": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "ServiceName"
+              },
+              {
+                "Ref": "Env"
+              },
+              {
+                "Ref": "Region"
+              }
+            ]
+          ]
+        },
+        "VpcId": {
+          "Fn::ImportValue": {
+            "Fn::Sub": "${AWS::Region}-${Env}-VPC"
+          }
+        },
+        "SecurityGroupIngress": [
+          {
+            "SourceSecurityGroupId" : {
+              "Fn::ImportValue": {
+                "Fn::Sub": "${Region}-${Env}-BastionSecurityGroup"
+              }
+            },
+            "Description" : "AllIPv6",
+            "FromPort" : -1,
+            "IpProtocol" :  -1,
+            "ToPort" : -1
+          }
+        ],
+        "SecurityGroupEgress": [
+          {
+            "CidrIpv6" : "::/0",
+            "Description" : "AllIPv6",
+            "FromPort" : -1,
+            "IpProtocol" :  -1,
+            "ToPort" : -1
+          },
+          {
+            "CidrIp" : "0.0.0.0/0",
+            "Description" : "AllIPv4",
+            "FromPort" : -1,
+            "IpProtocol" :  -1,
+            "ToPort" : -1
+          }
+        ]
+      }
+    },
+    "ECRRepository": {
+      "Type": "AWS::ECR::Repository",
+      "Properties": {
+        "ImageTagMutability": "MUTABLE",
+        "RepositoryName": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "ServiceName"
+              },
+              {
+                "Ref": "Env"
+              },
+              {
+                "Ref": "Region"
+              }
+            ]
+          ]
+        },
+        "Tags" : [
+          {
+            "Key" : "Service",
+            "Value" : {
+              "Ref": "ServiceName"
+            }
+          },
+          {
+            "Key" : "Env",
+            "Value" : {
+              "Ref": "Env"
+            }
+          },
+          {
+            "Key" : "Region",
+            "Value" : {
+              "Ref": "Region"
+            }
+          }
+        ]
+      }
+    },
+    "JobDefinition": {
+      "Type" : "AWS::Batch::JobDefinition",
+      "Properties" : {
+        "ContainerProperties" : {
+          "Command" : [ ],
+          "Environment" : [
+            {
+              "Name": "S3_BUCKET",
+              "Value": {
+                "Ref": "OutputBucket"
+              }
+            },
+            {
+              "Name": "PYTHONUNBUFFERED",
+              "Value": 1
+            }
+          ],
+          "ExecutionRoleArn" : {
+            "Ref": "ECSTaskExecutionIAMRole"
+          },
+          "JobRoleArn": {
+            "Fn::GetAtt": [
+              "JobDefinitionIAMRole",
+              "Arn"
+            ]
+          },
+          "Image" :  {
+            "Fn::Join": [
+              ":",
+              [
+                {
+                  "Fn::GetAtt": [
+                    "ECRRepository",
+                    "RepositoryUri"
+                  ]
+                },
+                {
+                  "Ref": "Env"
+                }
+              ]
+            ]
+          },
+          "LogConfiguration" : {
+            "LogDriver" : "awslogs",
+            "Options" : {
+              "awslogs-region": {
+                "Ref": "Region"
+              },
+              "awslogs-group": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    {
+                      "Ref": "ServiceName"
+                    },
+                    {
+                      "Ref": "Env"
+                    },
+                    {
+                      "Ref": "Region"
+                    }
+                  ]
+                ]
+              },
+              "awslogs-create-group": true
+            }
+          },
+          "Privileged" : true,
+          "ReadonlyRootFilesystem" : false,
+          "ResourceRequirements" : [
+            {
+              "Type" : "GPU",
+              "Value" : 1
+            },
+            {
+              "Type" : "VCPU",
+              "Value" : 8
+            },
+            {
+              "Type" : "MEMORY",
+              "Value" : 30510
+            }
+          ],
+          "Secrets" : [  ],
+          "MountPoints": [
+            {
+              "ContainerPath" : "/home/ubuntu/src",
+              "ReadOnly" : false,
+              "SourceVolume": "src"
+            },
+            {
+              "ContainerPath" : "/home/ubuntu/.conda",
+              "ReadOnly" : false,
+              "SourceVolume": "conda_cache"
+            },
+            {
+              "ContainerPath" : "/root/.cache",
+              "ReadOnly" : false,
+              "SourceVolume": "root_cache"
+            },
+            {
+              "ContainerPath" : "/home/ubuntu/.cache",
+              "ReadOnly" : false,
+              "SourceVolume": "ubuntu_cache"
+            },
+            {
+              "ContainerPath" : "/opt/conda",
+              "ReadOnly" : false,
+              "SourceVolume": "opt_conda"
+            }
+          ],
+          "Volumes": [
+            {
+              "EfsVolumeConfiguration": {
+                "FileSystemId" : {
+                  "Ref": "EFSFileSystem"
+                },
+                "RootDirectory": "/root_cache"
+              },
+              "Name": "root_cache"
+            },
+            {
+              "EfsVolumeConfiguration": {
+                "FileSystemId" : {
+                  "Ref": "EFSFileSystem"
+                },
+                "RootDirectory": "/opt_conda"
+              },
+              "Name": "opt_conda"
+            },
+            {
+              "EfsVolumeConfiguration": {
+                "FileSystemId" : {
+                  "Ref": "EFSFileSystem"
+                },
+                "RootDirectory": "/src"
+              },
+              "Name": "src"
+            },
+            {
+              "EfsVolumeConfiguration": {
+                "FileSystemId" : {
+                  "Ref": "EFSFileSystem"
+                },
+                "RootDirectory": "/ubuntu_cache"
+              },
+              "Name": "ubuntu_cache"
+            },
+            {
+              "EfsVolumeConfiguration": {
+                "FileSystemId" : {
+                  "Ref": "EFSFileSystem"
+                },
+                "RootDirectory": "/conda_cache"
+              },
+              "Name": "conda_cache"
+            }
+          ]
+        },
+        "JobDefinitionName" : {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "ServiceName"
+              },
+              {
+                "Ref": "Env"
+              },
+              {
+                "Ref": "Region"
+              }
+            ]
+          ]
+        },
+        "Parameters" : {},
+        "PlatformCapabilities" : [ "EC2" ],
+        "Tags" : {
+          "Service": {
+            "Ref": "ServiceName"
+          },
+          "Env": {
+            "Ref": "Env"
+          },
+          "Region": {
+            "Ref": "Region"
+          }
+        },
+        "Timeout" : {
+          "AttemptDurationSeconds" : 3000
+        },
+        "Type" : "container"
+      }
+    },
+    "JobDefinitionIAMRole": {
+      "Type" : "AWS::IAM::Role",
+      "Properties" : {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "ecs-tasks.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/",
+        "RoleName" :  {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "ServiceName"
+              },
+              "task-execution",
+              {
+                "Ref": "Env"
+              },
+              {
+                "Ref": "Region"
+              }
+            ]
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName" : {
+              "Fn::Join": [
+                "-",
+                [
+                  {
+                    "Ref": "ServiceName"
+                  },
+
+                  {
+                    "Ref": "Env"
+                  },
+                  {
+                    "Ref": "Region"
+                  },
+                  "cw-logs"
+                ]
+              ]
+            },
+            "PolicyDocument" : {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Resource": [
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          "arn:aws:s3:::",
+                          {
+                            "Ref": "OutputBucket"
+                          },
+                          "/"
+                        ]
+                      ]
+                    },
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          "arn:aws:s3:::",
+                          {
+                            "Ref": "OutputBucket"
+                          },
+                          "/*"
+                        ]
+                      ]
+                    }
+
+                  ],
+                  "Action": [
+                    "s3:PutObject",
+                    "s3:GetObject",
+                    "s3:GetObjectVersion",
+                    "s3:GetBucketAcl",
+                    "s3:GetBucketLocation"
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Resource": [
+                    {
+                      "Fn::Join": [
+                        ":",
+                        [
+                          "arn:aws:logs",
+                          {
+                            "Ref": "Region"
+                          },
+                          {
+                            "Fn::Sub": "${AWS::AccountId}"
+                          },
+                          "log-group",
+                          {
+                            "Fn::Join": [
+                              "",
+                              [
+                                "",
+                                {
+                                  "Fn::Join": [
+                                    "-",
+                                    [
+                                      {
+                                        "Ref": "ServiceName"
+                                      },
+                                      {
+                                        "Ref": "Env"
+                                      },
+                                      {
+                                        "Ref": "Region"
+                                      }
+
+                                    ]
+                                  ]
+                                }
+                              ]
+                            ]
+                          }
+
+                        ]
+                      ]
+                    },
+                    {
+                      "Fn::Join": [
+                        ":",
+                        [
+                          "arn:aws:logs",
+                          {
+                            "Ref": "Region"
+                          },
+                          {
+                            "Fn::Sub": "${AWS::AccountId}"
+                          },
+                          "log-group",
+                          {
+                            "Fn::Join": [
+                              "",
+                              [
+                                "",
+                                {
+                                  "Fn::Join": [
+                                    "-",
+                                    [
+                                      {
+                                        "Ref": "ServiceName"
+                                      },
+                                      {
+                                        "Ref": "Env"
+                                      },
+                                      {
+                                        "Ref": "Region"
+                                      }
+                                    ]
+                                  ]
+                                },
+                                ":**"
+                              ]
+                            ]
+                          }
+                        ]
+                      ]
+                    }
+                  ],
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "BatchJobQueue": {
+      "Type" : "AWS::Batch::JobQueue",
+      "Properties" : {
+        "ComputeEnvironmentOrder" : [{
+          "ComputeEnvironment" : {
+            "Ref": "BatchGPUComputeEnvironment"
+          },
+          "Order" : 1
+        }],
+        "JobQueueName" : {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "ServiceName"
+              },
+
+              {
+                "Ref": "Env"
+              },
+              {
+                "Ref": "Region"
+              }
+            ]
+          ]
+        },
+        "Priority" : 1,
+        "State" : "ENABLED",
+        "Tags" : {
+          "Service": {
+            "Ref": "ServiceName"
+          },
+          "Env": {
+            "Ref": "Env"
+          },
+          "Region": {
+            "Ref": "Region"
+          }
+        }
+      }
+    },
+
+
+
+
+    "EFSFileSystem": {
+      "Type" : "AWS::EFS::FileSystem",
+      "Properties" : {
+        "Encrypted" : false,
+        "FileSystemPolicy" : {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "elasticfilesystem:Client*"
+              ],
+              "Principal":  {
+                "AWS": "*"
+              }
+            }
+          ]
+        },
+        "FileSystemTags" : [
+          {
+          "Key" : "Service",
+          "Value" : {
+            "Ref": "ServiceName"
+          }
+        },
+          {
+            "Key" : "Env",
+            "Value" : {
+              "Ref": "Env"
+            }
+          },
+          {
+            "Key" : "Region",
+            "Value" : {
+              "Ref": "Region"
+            }
+          }
+        ],
+        "PerformanceMode" : "generalPurpose",
+        "ThroughputMode" : "bursting"
+      }
+    },
+
+    "EFSFileSystemAccessPointResource": {
+      "Type": "AWS::EFS::AccessPoint",
+      "Properties": {
+        "FileSystemId": {
+          "Ref": "EFSFileSystem"
+        },
+        "PosixUser": {
+          "Uid": "13234",
+          "Gid": "1322",
+          "SecondaryGids": [
+            "1344",
+            "1452"
+          ]
+        },
+        "RootDirectory": {
+          "CreationInfo": {
+            "OwnerGid": "708798",
+            "OwnerUid": "7987987",
+            "Permissions": "0755"
+          },
+          "Path": "/"
+        }
+      }
+    },
+
+    "EFSMountTargetSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupName": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "ServiceName"
+              },
+              "efs-mount-target",
+              {
+                "Ref": "Env"
+              },
+              {
+                "Ref": "Region"
+              }
+            ]
+          ]
+        },
+        "GroupDescription": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "ServiceName"
+              },
+              "efs-mount-target",
+              {
+                "Ref": "Env"
+              },
+              {
+                "Ref": "Region"
+              }
+            ]
+          ]
+        },
+        "VpcId": {
+          "Fn::ImportValue": {
+            "Fn::Sub": "${AWS::Region}-${Env}-VPC"
+          }
+        },
+        "SecurityGroupIngress": [
+          {
+            "SourceSecurityGroupId": {
+              "Ref": "BatchGPUComputeEnvironmentSecurityGroup"
+            },
+            "Description" : "AllIPv4",
+            "FromPort" : -1,
+            "IpProtocol" :  -1,
+            "ToPort" : -1
+          },
+          {
+            "SourceSecurityGroupId": {
+              "Ref": "CodeBuildSecurityGroup"
+            },
+            "Description" : "AllIPv4",
+            "FromPort" : -1,
+            "IpProtocol" :  -1,
+            "ToPort" : -1
+          }
+        ],
+        "SecurityGroupEgress": [
+          {
+            "CidrIpv6" : "::/0",
+            "Description" : "AllIPv6",
+            "FromPort" : -1,
+            "IpProtocol" :  -1,
+            "ToPort" : -1
+          },
+          {
+            "CidrIp" : "0.0.0.0/0",
+            "Description" : "AllIPv4",
+            "FromPort" : -1,
+            "IpProtocol" :  -1,
+            "ToPort" : -1
+          }
+        ]
+      }
+    },
+    "EFSMountTargetPrivateSubnetA": {
+      "Type" : "AWS::EFS::MountTarget",
+      "Properties" : {
+        "FileSystemId" : {
+          "Ref": "EFSFileSystem"
+        },
+        "SecurityGroups" : [
+          {
+            "Ref": "EFSMountTargetSecurityGroup"
+          }
+        ],
+        "SubnetId" : {
+          "Fn::ImportValue": {
+            "Fn::Sub": "${Region}-${Env}-PrivateSubnetA"
+          }
+        }
+      }
+    },
+    "EFSMountTargetPrivateSubnetB": {
+      "Type" : "AWS::EFS::MountTarget",
+      "Properties" : {
+        "FileSystemId" : {
+          "Ref": "EFSFileSystem"
+        },
+        "SecurityGroups" : [
+          {
+            "Ref": "EFSMountTargetSecurityGroup"
+          }
+        ],
+        "SubnetId" : {
+          "Fn::ImportValue": {
+            "Fn::Sub": "${Region}-${Env}-PrivateSubnetB"
+          }
+        }
+      }
+    },
+    "EFSMountTargetPrivateSubnetC": {
+      "Type" : "AWS::EFS::MountTarget",
+      "Properties" : {
+        "FileSystemId" : {
+          "Ref": "EFSFileSystem"
+        },
+        "SecurityGroups" : [
+          {
+            "Ref": "EFSMountTargetSecurityGroup"
+          }
+        ],
+        "SubnetId" : {
+          "Fn::ImportValue": {
+            "Fn::Sub": "${Region}-${Env}-PrivateSubnetC"
+          }
+        }
+      }
+    },
+
+    "CodePipelineArtifactStoreBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "CodePipelineArtifactStoreBucket"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "S3",
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:*",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "CodePipelineArtifactStoreBucket"
+                    },
+                    "/*"
+                  ]
+                ]
+              },
+              "Condition": {
+                "StringNotEquals": {
+                  "s3:x-amz-server-side-encryption": "aws:kms"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "AppPipeline": {
+      "Type": "AWS::CodePipeline::Pipeline",
+      "Properties": {
+        "Name": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "ServiceName"
+              },
+              {
+                "Ref": "Env"
+              },
+              {
+                "Ref": "Region"
+              }
+
+            ]
+          ]
+        },
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "CodePipelineServiceRole",
+            "Arn"
+          ]
+        },
+        "Stages": [
+          {
+            "Name": "Source",
+            "Actions": [
+              {
+                "Name": "SourceAction",
+                "ActionTypeId": {
+                  "Category": "Source",
+                  "Owner": "AWS",
+                  "Version": 1,
+                  "Provider": "CodeStarSourceConnection"
+                },
+                "OutputArtifacts": [
+                  {
+                    "Name": "SourceArtifact"
+                  }
+                ],
+                "Configuration": {
+                  "ConnectionArn": {
+                    "Ref": "CodeStarConnectionARN"
+                  },
+                  "FullRepositoryId": {
+                    "Fn::Join": [
+                      "/",
+                      [
+                        {
+                          "Ref": "GitHubOwner"
+                        },
+                        {
+                          "Ref": "GithubProjectName"
+                        }
+                      ]
+                    ]
+                  },
+                  "BranchName": {
+                    "Ref": "GithubSourceBranch"
+                  }
+                },
+                "RunOrder": 1
+              }
+            ]
+          },
+
+
+          {
+            "Name": "Build",
+            "Actions": [
+              {
+                "Name": "Build",
+                "InputArtifacts": [
+                  {
+                    "Name": "SourceArtifact"
+                  }
+                ],
+                "OutputArtifacts": [
+                  {
+                    "Name": "BuildArtifact"
+                  }
+                ],
+                "ActionTypeId": {
+                  "Category": "Build",
+                  "Owner": "AWS",
+                  "Version": 1,
+                  "Provider": "CodeBuild"
+                },
+                "Configuration": {
+                  "ProjectName": {
+                    "Ref": "CodeBuildProject"
+                  }
+                },
+                "RunOrder": 1
+              }
+            ]
+          }
+        ],
+        "ArtifactStore": {
+          "Type": "S3",
+          "Location": {
+            "Ref": "CodePipelineArtifactStoreBucket"
+          }
+        }
+      }
+    },
+    "CodePipelineServiceRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "codepipeline.amazonaws.com"
+                ]
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+
+          {
+            "PolicyName": "AWS-CodePipeline-Service-3",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "codestar-connections:UseConnection",
+                    "codestar-connections:StartOAuthHandshake",
+                    "codestar-connections:GetInstallationUrl",
+                    "codestar-connections:GetConnection"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "codedeploy:CreateDeployment",
+                    "codedeploy:GetApplicationRevision",
+                    "codedeploy:GetDeployment",
+                    "codedeploy:GetDeploymentConfig",
+                    "codedeploy:RegisterApplicationRevision"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "codebuild:CreateReportGroup",
+                    "codebuild:CreateReport",
+                    "codebuild:UpdateReport",
+                    "codebuild:BatchPutTestCases",
+                    "codebuild:BatchGetBuildBatches"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "CodeBuildProject",
+                        "Arn"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "codebuild:BatchGetBuilds",
+                    "codebuild:StartBuild",
+                    "codebuild:StartBuildBatch"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "iam:PassRole"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:PutObject",
+                    "s3:GetObject"
+                  ],
+                  "Resource":  {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:aws:s3:::",
+                        {
+                          "Ref": "CodePipelineArtifactStoreBucket"
+                        },
+                        "/*"
+                      ]
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "CodeBuildProject": {
+      "Type" : "AWS::CodeBuild::Project",
+      "Properties" : {
+        "Artifacts" : {
+          "Type" : "CODEPIPELINE"
+        },
+        "BuildBatchConfig": {
+          "ServiceRole" : {
+            "Ref": "CodeBuildRole"
+          },
+          "TimeoutInMins" : {
+            "Ref": "CodeBuildTimeout"
+          }
+        },
+        "Description" : {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "ServiceName"
+              },
+              {
+                "Ref": "Env"
+              },
+              {
+                "Ref": "Region"
+              }
+            ]
+          ]
+        },
+        "VpcConfig": {
+          "SecurityGroupIds" : [
+            {
+              "Ref": "CodeBuildSecurityGroup"
+            }
+          ],
+          "Subnets" : [
+            {
+              "Fn::ImportValue": {
+                "Fn::Sub": "${Region}-${Env}-PrivateSubnetA"
+              }
+            },
+            {
+              "Fn::ImportValue": {
+                "Fn::Sub": "${Region}-${Env}-PrivateSubnetB"
+              }
+            },
+            {
+              "Fn::ImportValue": {
+                "Fn::Sub": "${Region}-${Env}-PrivateSubnetC"
+              }
+            }
+          ],
+          "VpcId" : {
+            "Fn::ImportValue": {
+              "Fn::Sub": "${AWS::Region}-${Env}-VPC"
+            }
+          }
+        },
+        "Environment" : {
+          "ComputeType" : "BUILD_GENERAL1_MEDIUM",
+          "EnvironmentVariables" : [
+            {
+              "Name" : "AWS_DEFAULT_REGION",
+              "Type" : "PLAINTEXT",
+              "Value" : {
+                "Ref": "Region"
+              }
+            },
+
+            {
+              "Name" : "ECS_CONTAINER_NAME",
+              "Type" : "PLAINTEXT",
+              "Value" : {
+                "Ref": "ServiceName"
+              }
+            },
+
+            {
+              "Name" : "AWS_ACCOUNT_ID",
+              "Type" : "PLAINTEXT",
+              "Value" : {
+                "Fn::Sub": "${AWS::AccountId}"
+              }
+            },
+
+            {
+              "Name" : "IMAGE_TAG",
+              "Type" : "PLAINTEXT",
+              "Value" : {
+                "Ref": "Env"
+              }
+            },
+
+            {
+              "Name" : "IMAGE_REPO_NAME",
+              "Type" : "PLAINTEXT",
+              "Value" : {
+                "Fn::Join": [
+                  "-",
+                  [
+                    {
+                      "Ref": "ServiceName"
+                    },
+
+                    {
+                      "Ref": "Env"
+                    },
+                    {
+                      "Ref": "Region"
+                    }
+                  ]
+                ]
+              }
+            }
+          ],
+          "Image" : { "Ref": "CodeBuildImageURI" },
+          "PrivilegedMode" : true,
+          "Type" : "LINUX_CONTAINER"
+        },
+        "LogsConfig" : {
+          "CloudWatchLogs" : {
+            "GroupName" : {
+              "Fn::Join": [
+                "",
+                [
+                  "/aws/codebuild/",
+                  {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        {
+                          "Ref": "ServiceName"
+                        },
+
+                        {
+                          "Ref": "Env"
+                        },
+                        {
+                          "Ref": "Region"
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            },
+            "Status" : "ENABLED"
+          }
+        },
+        "Name" : {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "ServiceName"
+              },
+
+              {
+                "Ref": "Env"
+              },
+              {
+                "Ref": "Region"
+              }
+            ]
+          ]
+        },
+        "QueuedTimeoutInMinutes" : 5,
+        "ServiceRole" : {
+          "Ref":"CodeBuildRole"
+        },
+        "Source" : {
+          "Type": "CODEPIPELINE"
+        },
+        "Tags" : [
+          {
+            "Key" : "Env",
+            "Value" : { "Ref": "Env" }
+          },
+          {
+            "Key" : "Region",
+            "Value" : { "Ref": "Region" }
+          },
+          {
+            "Key" : "Service",
+            "Value" : { "Ref": "ServiceName" }
+          }
+        ],
+        "FileSystemLocations": [
+          {
+            "Identifier" : "root",
+            "Location" : {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "EFSFileSystem"
+                  },
+                  ".efs.",
+                  {
+                    "Ref": "Region"
+                  },
+                  ".amazonaws.com:/"
+                ]
+              ]
+            },
+            "MountPoint" : "/codebuild/output/mnt",
+            "Type" : "EFS"
+          }
+        ]
+      }
+    },
+
+    "CodeBuildSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupName": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "ServiceName"
+              },
+              {
+                "Ref": "Env"
+              },
+              {
+                "Ref": "Region"
+              },
+              "code-build"
+            ]
+          ]
+        },
+        "GroupDescription": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "ServiceName"
+              },
+              {
+                "Ref": "Env"
+              },
+              {
+                "Ref": "Region"
+              },
+              "code-build"
+            ]
+          ]
+        },
+        "VpcId": {
+          "Fn::ImportValue": {
+            "Fn::Sub": "${AWS::Region}-${Env}-VPC"
+          }
+        },
+        "SecurityGroupIngress": [
+
+        ],
+        "SecurityGroupEgress": [
+          {
+            "CidrIpv6" : "::/0",
+            "Description" : "AllIPv6",
+            "FromPort" : -1,
+            "IpProtocol" :  -1,
+            "ToPort" : -1
+          },
+          {
+            "CidrIp" : "0.0.0.0/0",
+            "Description" : "AllIPv4",
+            "FromPort" : -1,
+            "IpProtocol" :  -1,
+            "ToPort" : -1
+          }
+        ]
+      }
+    },
+    "CodeBuildRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "ServiceName"
+              },
+              {
+                "Ref": "Env"
+              },
+              {
+                "Ref": "Region"
+              },
+              "codebuild"
+            ]
+          ]
+        },
+        "Description": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "ServiceName"
+              },
+              {
+                "Ref": "Env"
+              },
+              {
+                "Ref": "Region"
+              },
+              "codebuild"
+            ]
+          ]
+        },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "codebuild.amazonaws.com"
+                ]
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName" : {
+              "Fn::Join": [
+                "-",
+                [
+                  {
+                    "Ref": "ServiceName"
+                  },
+
+                  {
+                    "Ref": "Env"
+                  },
+                  {
+                    "Ref": "Region"
+                  },
+                  "codebuild-policy"
+                ]
+              ]
+            },
+            "PolicyDocument" : {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Resource": [
+                    {
+                      "Fn::Join": [
+                        ":",
+                        [
+                          "arn:aws:logs",
+                          {
+                            "Ref": "Region"
+                          },
+                          {
+                            "Fn::Sub": "${AWS::AccountId}"
+                          },
+                          "log-group",
+                          {
+                            "Fn::Join": [
+                              "",
+                              [
+                                "/aws/codebuild/",
+                                {
+                                  "Fn::Join": [
+                                    "-",
+                                    [
+                                      {
+                                        "Ref": "ServiceName"
+                                      },
+                                      {
+                                        "Ref": "Env"
+                                      },
+                                      {
+                                        "Ref": "Region"
+                                      }
+
+                                    ]
+                                  ]
+                                }
+                              ]
+                            ]
+                          }
+
+                        ]
+                      ]
+                    },
+                    {
+                      "Fn::Join": [
+                        ":",
+                        [
+                          "arn:aws:logs",
+                          {
+                            "Ref": "Region"
+                          },
+                          {
+                            "Fn::Sub": "${AWS::AccountId}"
+                          },
+                          "log-group",
+                          {
+                            "Fn::Join": [
+                              "",
+                              [
+                                "/aws/codebuild/",
+                                {
+                                  "Fn::Join": [
+                                    "-",
+                                    [
+                                      {
+                                        "Ref": "ServiceName"
+                                      },
+                                      {
+                                        "Ref": "Env"
+                                      },
+                                      {
+                                        "Ref": "Region"
+                                      }
+                                    ]
+                                  ]
+                                },
+                                ":**"
+                              ]
+                            ]
+                          }
+                        ]
+                      ]
+                    }
+                  ],
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Resource": [
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          "arn:aws:s3:::",
+                          {
+                            "Ref": "CodePipelineArtifactStoreBucket"
+                          },
+                          "/"
+                        ]
+                      ]
+                    },
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          "arn:aws:s3:::",
+                          {
+                            "Ref": "CodePipelineArtifactStoreBucket"
+                          },
+                          "/*"
+                        ]
+                      ]
+                    }
+
+                  ],
+                  "Action": [
+                    "s3:PutObject",
+                    "s3:GetObject",
+                    "s3:GetObjectVersion",
+                    "s3:GetBucketAcl",
+                    "s3:GetBucketLocation"
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "codebuild:Start",
+                    "codebuild:StartBuild"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+
+                          {
+                            "Fn::Join": [
+                              ":",
+                              [
+                                "arn:aws:codebuild",
+                                {
+                                  "Ref": "Region"
+                                },
+                                {
+                                  "Fn::Sub": "${AWS::AccountId}"
+                                },
+                                "project/"
+                              ]
+                            ]
+                          },
+
+                          {
+                            "Fn::Join": [
+                              "-",
+                              [
+                                {
+                                  "Ref": "ServiceName"
+                                },
+
+                                {
+                                  "Ref": "Env"
+                                },
+                                {
+                                  "Ref": "Region"
+                                }
+                              ]
+                            ]
+                          }
+                        ]
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ecr:GetLifecyclePolicyPreview",
+                    "ecr:GetDownloadUrlForLayer",
+                    "ecr:ListTagsForResource",
+                    "ecr:UploadLayerPart",
+                    "ecr:ListImages",
+                    "ecr:PutImage",
+                    "ecr:BatchGetImage",
+                    "ecr:CompleteLayerUpload",
+                    "ecr:DescribeImages",
+                    "ecr:TagResource",
+                    "ecr:DescribeRepositories",
+                    "ecr:InitiateLayerUpload",
+                    "ecr:BatchCheckLayerAvailability",
+                    "ecr:GetRepositoryPolicy",
+                    "ecr:GetLifecyclePolicy"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Join": [
+                        ":",
+                        [
+                          "arn:aws:ecr",
+                          {
+                            "Ref": "Region"
+                          },
+                          {
+                            "Fn::Sub": "${AWS::AccountId}"
+                          },
+                          {
+                            "Fn::Join": [
+                              "",
+                              [
+                                "repository/",
+                                {
+                                  "Ref": "ServiceName"
+                                },
+                                "*"
+                              ]
+                            ]
+                          }
+                        ]
+                      ]
+                    },
+                    "arn:aws:ecr:us-east-1:368590945923:repository/schematicabot-worker"
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ecr:GetAuthorizationToken"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ec2:CreateNetworkInterface",
+                    "ec2:DescribeNetworkInterfaces",
+                    "ec2:CreateNetworkInterfacePermission",
+                    "ec2:DescribeVpcs",
+                    "ec2:DeleteNetworkInterface",
+                    "ecr:GetAuthorizationToken",
+                    "ec2:DescribeSubnets",
+                    "ec2:DescribeSecurityGroups",
+                    "ec2:DescribeDhcpOptions"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "JobDefinition": {
+      "Description": "JobDefinition",
+      "Value": {
+        "Ref": "JobDefinition"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${ServiceName}-${Region}-${Env}-JobDefinition"
+        }
+      }
+    },
+    "JobQueue": {
+      "Description": "JobQueue",
+      "Value": {
+        "Fn::GetAtt": [
+          "BatchJobQueue",
+          "JobQueueArn"
+        ]
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${ServiceName}-${Region}-${Env}-JobQueue"
+        }
+      }
+    },
+    "OutputBucket": {
+      "Description": "OutputBucket",
+      "Value": {
+        "Ref": "OutputBucket"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${ServiceName}-${Region}-${Env}-OutputBucket"
+        }
+      }
+    }
+  }
+}
