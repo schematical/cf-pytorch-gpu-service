@@ -11,29 +11,23 @@
       "Type": "String"
     },
     "Env": {
-      "Type": "String"
+      "Type": "String",
+      "Default": "Dev"
+    },
+    "VpcId": {
+      "Type": "AWS::EC2::VPC::Id"
     },
     "CodePipelineArtifactStoreBucket": {
       "Type": "String"
     },
-    "ECSTaskExecutionIAMRole": {
-      "Type": "String"
-    },
+
     "InstanceTypes": {
-      "Type": "String",
+      "Type": "CommaDelimitedList",
       "Default": "g4dn.2xlarge"
     },
-    "GitHubOwner": {
-      "Type": "String",
-      "Default": "schematical"
-    },
-    "GithubProjectName": {
-      "Type": "String",
-      "Default": "cf-pytorch-gpu-service"
-    },
-    "GithubSourceBranch": {
-      "Type": "String",
-      "Default": "main"
+    "PrivateSubnets": {
+      "Type": "List<AWS::EC2::Subnet::Id>",
+      "Default": ""
     },
     "CodeBuildImageURI": {
       "Type": "String",
@@ -43,21 +37,53 @@
       "Type": "Number",
       "Default": 5
     },
+    "OutputBucket": {
+      "Type": "String",
+      "Default": ""
+    },
     "CodePipelineArtifactStoreBucket": {
-      "Type": "String"
+      "Type": "String",
+      "Default": ""
+    },
+    "ECSTaskExecutionIAMRole": {
+      "Type": "String",
+      "Default": ""
     },
     "SourceCodeBucket": {
       "Type": "String",
       "Default": "TODO: SCHEMATICAL ADD ME"
+    }
+  },
+  "Conditions": {
+    "CreateCodePipelineArtifactStoreBucket": {
+      "Fn::Equals": [
+        {
+          "Ref": "CodePipelineArtifactStoreBucket"
+        },
+        ""
+      ]
     },
-    "CodeStarConnectionARN": {
-      "Type": "String",
-      "Default": "arn:aws:codestar-connections:us-east-1:368590945923:connection/67d17ca5-a542-49db-9256-157204b67b1d"
+    "CreateOutputBucket": {
+      "Fn::Equals": [
+        {
+          "Ref": "OutputBucket"
+        },
+        ""
+      ]
+    },
+    "CreateECSTaskExecutionIAMRole": {
+      "Fn::Equals": [
+        {
+          "Ref": "CodePipelineArtifactStoreBucket"
+        },
+        ""
+      ]
     }
   },
   "Resources": {
-    "OutputBucket": {
+    "CodePipelineArtifactStoreBucket": {
       "Type": "AWS::S3::Bucket",
+      "Condition": "CreateCodePipelineArtifactStoreBucket",
       "Properties": {
         "BucketName": {
           "Fn::Join": [
@@ -78,13 +104,11 @@
         }
       }
     },
-    "BatchGPUComputeEnvironmentLaunchTemplate": {
-      "Type": "AWS::EC2::LaunchTemplate",
+    "OutputBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Condition": "CreateOutputBucket",
       "Properties": {
-        "LaunchTemplateData": {
-          "UserData":"cm0gL3Zhci9saWIvZWNzL2RhdGEvYWdlbnQuZGIgLWYgJiYgc3lzdGVtY3RsIHJlc3RhcnQgZWNz"
-        },
-        "LaunchTemplateName":  {
+        "BucketName": {
           "Fn::Join": [
             "-",
             [
@@ -96,11 +120,38 @@
               },
               {
                 "Ref": "Region"
-              },
-              "LaunchTemplate"
+              }
+
             ]
           ]
         }
+      }
+    },
+    "ECSTaskExecutionIAMRole": {
+      "Type": "AWS::IAM::Role",
+      "Condition": "CreateECSTaskExecutionIAMRole",
+      "Properties": {
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+        ],
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "ecs-tasks.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/",
+        "RoleName": "ECSTaskExecutionIAMRole"
       }
     },
     "BatchGPUComputeEnvironment":{
@@ -132,9 +183,9 @@
               "ImageType" : "ECS_AL2"
             }
           ],
-          "InstanceTypes" : [ {
+          "InstanceTypes" : {
             "Ref": "InstanceTypes"
-          }],
+          },
           "InstanceRole": {
             "Fn::GetAtt" : [
               "BatchGPUComputeEnvironmentInstanceProfile",
@@ -147,23 +198,9 @@
           "SecurityGroupIds" : [
             {"Ref": "BatchGPUComputeEnvironmentSecurityGroup"}
           ],
-          "Subnets" : [
-            {
-              "Fn::ImportValue": {
-                "Fn::Sub": "${Region}-${Env}-PrivateSubnetA"
-              }
-            },
-            {
-              "Fn::ImportValue": {
-                "Fn::Sub": "${Region}-${Env}-PrivateSubnetB"
-              }
-            },
-            {
-              "Fn::ImportValue": {
-                "Fn::Sub": "${Region}-${Env}-PrivateSubnetC"
-              }
-            }
-          ],
+          "Subnets" : {
+            "Ref": "PrivateSubnet"
+          },
           "Tags" : {
             "Service": {
               "Ref": "ServiceName"
@@ -348,9 +385,7 @@
           ]
         },
         "VpcId": {
-          "Fn::ImportValue": {
-            "Fn::Sub": "${AWS::Region}-${Env}-VPC"
-          }
+          "Ref": "VpcId"
         },
         "SecurityGroupIngress": [
           {
@@ -964,9 +999,7 @@
           ]
         },
         "VpcId": {
-          "Fn::ImportValue": {
-            "Fn::Sub": "${AWS::Region}-${Env}-VPC"
-          }
+          "Ref": "VpcId"
         },
         "SecurityGroupIngress": [
           {
@@ -1018,9 +1051,7 @@
           }
         ],
         "SubnetId" : {
-          "Fn::ImportValue": {
-            "Fn::Sub": "${Region}-${Env}-PrivateSubnetA"
-          }
+          "Fn::Select" : [ 0, "PrivateSubnets" ]
         }
       }
     },
@@ -1036,9 +1067,7 @@
           }
         ],
         "SubnetId" : {
-          "Fn::ImportValue": {
-            "Fn::Sub": "${Region}-${Env}-PrivateSubnetB"
-          }
+          "Fn::Select" : [ 1, "PrivateSubnets" ]
         }
       }
     },
@@ -1054,9 +1083,7 @@
           }
         ],
         "SubnetId" : {
-          "Fn::ImportValue": {
-            "Fn::Sub": "${Region}-${Env}-PrivateSubnetC"
-          }
+          "Fn::Select" : [ 2, "PrivateSubnets" ]
         }
       }
     },
@@ -1347,27 +1374,11 @@
               "Ref": "CodeBuildSecurityGroup"
             }
           ],
-          "Subnets" : [
-            {
-              "Fn::ImportValue": {
-                "Fn::Sub": "${Region}-${Env}-PrivateSubnetA"
-              }
-            },
-            {
-              "Fn::ImportValue": {
-                "Fn::Sub": "${Region}-${Env}-PrivateSubnetB"
-              }
-            },
-            {
-              "Fn::ImportValue": {
-                "Fn::Sub": "${Region}-${Env}-PrivateSubnetC"
-              }
-            }
-          ],
+          "Subnets" : {
+            "Ref": "PrivateSubnets"
+          },
           "VpcId" : {
-            "Fn::ImportValue": {
-              "Fn::Sub": "${AWS::Region}-${Env}-VPC"
-            }
+            "Ref": "VpcId"
           }
         },
         "Environment" : {
@@ -1562,9 +1573,7 @@
           ]
         },
         "VpcId": {
-          "Fn::ImportValue": {
-            "Fn::Sub": "${AWS::Region}-${Env}-VPC"
-          }
+         "Ref": "VpcId"
         },
         "SecurityGroupIngress": [
 

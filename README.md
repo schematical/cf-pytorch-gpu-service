@@ -58,7 +58,12 @@ You can use the [AWS Batch Jobs Console](https://us-east-1.console.aws.amazon.co
 
 
 ##### AWS Cli:
-You can use the [cli to test](https://docs.aws.amazon.com/cli/latest/reference/batch/submit-job.html)
+You can use the [cli to test](https://docs.aws.amazon.com/cli/latest/reference/batch/submit-job.html).
+
+Here is an example of what that might look like. If you changed the `ServiceName`, `Env`, or `Region` make sure to update it and double-check your JobDefinition revision number.
+```
+aws batch submit-job --job-name MyTestJob --job-queue pytorch-gpu-service-v1-dev-us-east-1 --job-definition pytorch-gpu-service-v1-dev-us-east-1:1
+```
 
 #### SDK:
 Pick your [favorite AWS SDK](https://aws.amazon.com/developer/tools/) and have at it!
@@ -166,3 +171,6 @@ tail /var/log/ecs/*.log -n 100
 #### Optimize for SPOT
 
 sudo mount -t efs -o tls,accesspoint=fs-08dbc4cbdd42b5d3b fs-08dbc4cbdd42b5d3b.efs.us-east-1.amazonaws.com /mnt/efs/
+
+
+aws cloudformation validate-template --template-body file://
