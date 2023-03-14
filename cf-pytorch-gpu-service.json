@@ -46,6 +46,10 @@
     "CodePipelineArtifactStoreBucket": {
       "Type": "String"
     },
+    "SourceCodeBucket": {
+      "Type": "String",
+      "Default": "TODO: SCHEMATICAL ADD ME"
+    },
     "CodeStarConnectionARN": {
       "Type": "String",
       "Default": "arn:aws:codestar-connections:us-east-1:368590945923:connection/67d17ca5-a542-49db-9256-157204b67b1d"

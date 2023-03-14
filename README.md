@@ -1,5 +1,10 @@
 
-## Run Pytorch Cost Effectively At Scale With AWS Batch
+## Run Pytorch Cost Effectively At Scale With AWS Batch:
+
+Check out the Youtube video explaining this project [here](https://youtu.be/24ICSXJqm7A)
+[![](./thumb.jpg)](https://youtu.be/24ICSXJqm7A)
+
+
 ### Overview: 
 
 
@@ -13,32 +18,66 @@ An AWS Service to build AWS Infrastructure as code so it can be version controll
 
 
 ### Getting Started:
-#### Step 0 - Optional(Fork this repo):
+#### Step 0 - Setup your source:
+##### Step 1A - Fork the Repo(Going away soon):
 You can fork this repo and then [create a AWS CodeStar Connection](https://docs.aws.amazon.com/dtconsole/latest/userguide/connections-create.html) so that you can make edits to this.  
 The main reason for this is that you need to get access to the Github repo.
-
-#### Step 1 - Boot it up:
-While being logged in to your AWS Account run the CloudFormation script by clicking the link below:
-
-[![](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://us-east-1.console.aws.amazon.com/cloudformation/home?region=eu-central-1#/stacks/create/review?templateURL=https://sc-cloud-formation-v1.s3.amazonaws.com/cf-pytorch-gpu-service.json&stackName=schematical-pytorch-gpu-service)
 
 The screen you navigate to on AWS CloudFormation should have a list of all the resources you will be booting up.
 ##### CodeStarConnectionARN:
 https://docs.aws.amazon.com/dtconsole/latest/userguide/connections-create.html
 
+##### Step 1B - Create an S3 Bucket and upload the source:
+(Coming Soon)
+The build pipeline will just grab whatever source code you push up to the S3 bucket. So download this project, modify the commands in the `node` folder as you see fit.
+
+If you leave it as the default `SourceCodeBucket` value it will just pull from my public S3 bucket it will boot up the demo.
+
+
+#### Step 1 - Boot it up:
+While being logged in to your AWS Account run the CloudFormation script by clicking the link below:
+
+[![](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://us-east-1.console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/create/review?templateURL=https://sc-cloud-formation-v1.s3.amazonaws.com/cf-pytorch-gpu-service.json&stackName=schematical-pytorch-gpu-service)
+
+
+
+
+
 #### Step 2 - Test it:
+NOTE: Remember because of the EFS setup the first run will take a lot longer because it caches a lot of important things. After that it should run a lot faster.
+
+You can test it in one of 3 ways:
+##### AWS Console: 
+You can use the [AWS Batch Jobs Console](https://us-east-1.console.aws.amazon.com/batch/home?region=us-east-1#jobs) (be sure to select your region).
+
+1) Click `Submit Job`
+2) Select the Job Definition named after your service
+3) Select the Job Queue named after your service
+4) (Optional) Tweak any parameters you want
+5) Send it!
 
 
-// Command line call to trigger the job
+##### AWS Cli:
+You can use the [cli to test](https://docs.aws.amazon.com/cli/latest/reference/batch/submit-job.html)
+
+#### SDK:
+Pick your [favorite AWS SDK](https://aws.amazon.com/developer/tools/) and have at it!
+
+
 
 #### Step 3 - Scale it:
+You can scale the amount of compute resources that AWS Batch will boot up on EC2 by changing the `MaxvCpus` and `MaxvCpus`.
 
-// MinCPU MaxCPU
-// Instance Size 
+1) Open up the [cf-pytorch-gpu-service.json](./cf-pytorch-gpu-service.json)
+2) Navigate to `Resources` > `BatchGPUComputeEnvironment` > `ComputeResources` that should have child fields of  `MaxvCpus` and `MaxvCpus`
+3) If you edit the `MaxvCpus` that will increase the amount of servers AWS will boot up on your behalf.
+4) If you edit the `MinvCpus` that will set the minimum amount of AWS instances running at once. Assuming you are using the default `g4dn.2xlarge` instance type setting this to `8` will always keep one instance running.
+5) If you want to change the instance size change the `InstanceTypes` param (TODO: Make this an array). You can pick any of the [g4](https://aws.amazon.com/ec2/instance-types/g4)/[g5](https://aws.amazon.com/ec2/instance-types/g5/) (not `g5g` oddly enough).
 
 
 ### Support:
 Interested in supporting me as I maintain these free scripts? Click the link below:
+
 <a href="https://www.buymeacoffee.com/schematical" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
 
@@ -71,7 +110,7 @@ Of course if you want more hands on help with them or help training your team on
 
 
 ### NOTES:
-It is NOT nessicary but if you are going to try the super advanced move of running a custom AMI
+It is NOT necessary but if you are going to try the super advanced move of running a custom AMI
 I created the original custom AMI from Ubutu 20.04 with GPU Support. Specifically `ami-045a50425ac09a3f5` and Instance type `g4dn.xlarge`.
 
 
