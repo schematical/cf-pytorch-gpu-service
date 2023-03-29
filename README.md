@@ -167,10 +167,22 @@ tail /var/log/ecs/*.log -n 100
 
 #### Cache Checkpoints:
 /root/.cache/torch/hub/checkpoints
-/root/.cache
+
 #### Optimize for SPOT
 
-sudo mount -t efs -o tls,accesspoint=fs-08dbc4cbdd42b5d3b fs-08dbc4cbdd42b5d3b.efs.us-east-1.amazonaws.com /mnt/efs/
+sudo mkdir /mnt/efs/ && sudo mount -t efs -o tls fs-0986c3ca3ee3fceea.efs.us-east-1.amazonaws.com /mnt/efs/
 
 
-aws cloudformation validate-template --template-body file://
+aws cloudformation validate-template --template-body file:///mnt/d/WebstormProjects/cf-pytorch-gpu-service/cf-pytorch-gpu-service.json --profile schematical
+
+aws s3 cp /mnt/d/WebstormProjects/cf-pytorch-gpu-service/cf-pytorch-gpu-service.json s3://sc-cloud-formation-v1/cf-pytorch-gpu-service.json --recursive --profile schematical
+
+aws cloudformation update-stack --template-body file:///mnt/d/WebstormProjects/sc-cloudformation/cf-schematical-platform.json --capabilities CAPABILITY_NAMED_IAM --region us-east-1 --stack-name schematical-platform-v1 --profile schematical
+
+
+
+![Google Analytics](https://www.google-analytics.com/collect?v=1&cid=1&t=pageview&ec=repo&ea=open&dp=mjpitz%2Fgo-gracefully&dt=mjpitz%2Fgo-gracefully&tid=)
+
+
+
+Translate this CodePipeline Resource to terraform:
