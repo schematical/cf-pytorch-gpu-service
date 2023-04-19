@@ -64,7 +64,7 @@ const runSpawn = async (options) => {
         await runSpawn({
             path: MODEL_PATH,
             cmd: 'sh',
-            args: [`${__dirname}/scripts/download_model.sh ${MODEL_FILE_NAME} ${MODEL_PATH}`]
+            args: [`${__dirname}/scripts/download_model.sh`, MODEL_FILE_NAME, MODEL_PATH]
         });
     }
     await runSpawn({
