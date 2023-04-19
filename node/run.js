@@ -4,7 +4,8 @@ const { spawn } = require('child_process');
 const SRC_PATH = '/home/ubuntu/src/dreambooth/environment.yaml';
 const CONDA_LDM_DIR = '/opt/conda/install/envs/ldm';
 const CONDA_DIR = '/opt/conda/install';
-const MODEL_PATH = '/home/ubuntu/src/model.ckpt';
+const MODEL_FILE_NAME = process.argv[5]
+const MODEL_PATH = `/home/ubuntu/src/${MODEL_FILE_NAME}`;
 const runSpawn = async (options) => {
     return new Promise((resolve, reject) => {
         console.log("Did not find " + options.path + " installing");
@@ -63,13 +64,13 @@ const runSpawn = async (options) => {
         await runSpawn({
             path: MODEL_PATH,
             cmd: 'sh',
-            args: [`${__dirname}/scripts/download_model.sh`]
+            args: [`${__dirname}/scripts/download_model.sh ${MODEL_FILE_NAME} ${MODEL_PATH}`]
         });
     }
     await runSpawn({
         path: '/home/ubuntu/node/scripts/run.sh',
         cmd: '/opt/conda/install/bin/conda',
-        args: ["run", "--no-capture-output", "-n", "ldm", "/bin/bash", "-c", `/home/ubuntu/node/scripts/run.sh ${process.argv[2]} \"${process.argv[3]}\" ${process.argv[4]}`]
+        args: ["run", "--no-capture-output", "-n", "ldm", "/bin/bash", "-c", `/home/ubuntu/node/scripts/run.sh ${process.argv[2]} \"${process.argv[3]}\" ${process.argv[4]} \"${MODEL_PATH}\"`]
     });
 // /opt/conda/envs
 })();
