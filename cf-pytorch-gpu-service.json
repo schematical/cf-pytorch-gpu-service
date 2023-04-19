@@ -17,13 +17,19 @@
     "VpcId": {
       "Type": "AWS::EC2::VPC::Id"
     },
-    "CodePipelineArtifactStoreBucket": {
-      "Type": "String"
-    },
+
 
     "InstanceTypes": {
       "Type": "CommaDelimitedList",
       "Default": "g4dn.2xlarge"
+    },
+    "MaxvCpus": {
+      "Type": "Number",
+      "Default": 8
+    },
+    "MinvCpus": {
+      "Type": "Number",
+      "Default": 0
     },
     "PrivateSubnets": {
       "Type": "List<AWS::EC2::Subnet::Id>",
@@ -38,122 +44,26 @@
       "Default": 5
     },
     "OutputBucket": {
-      "Type": "String",
-      "Default": ""
+      "Type": "String"
     },
     "CodePipelineArtifactStoreBucket": {
-      "Type": "String",
-      "Default": ""
-    },
-    "ECSTaskExecutionIAMRole": {
-      "Type": "String",
-      "Default": ""
+      "Type": "String"
     },
     "SourceCodeBucket": {
       "Type": "String",
-      "Default": "TODO: SCHEMATICAL ADD ME"
-    }
-  },
-  "Conditions": {
-    "CreateCodePipelineArtifactStoreBucket": {
-      "Fn::Equals": [
-        {
-          "Ref": "CodePipelineArtifactStoreBucket"
-        },
-        ""
-      ]
+      "Default": "sc-cloud-formation-v1"
     },
-    "CreateOutputBucket": {
-      "Fn::Equals": [
-        {
-          "Ref": "OutputBucket"
-        },
-        ""
-      ]
-    },
-    "CreateECSTaskExecutionIAMRole": {
-      "Fn::Equals": [
-        {
-          "Ref": "CodePipelineArtifactStoreBucket"
-        },
-        ""
-      ]
-    }
-  },
-  "Resources": {
-    "CodePipelineArtifactStoreBucket": {
-      "Type": "AWS::S3::Bucket",
-      "Condition": "CreateCodePipelineArtifactStoreBucket",
-      "Properties": {
-        "BucketName": {
-          "Fn::Join": [
-            "-",
-            [
-              {
-                "Ref": "ServiceName"
-              },
-              {
-                "Ref": "Env"
-              },
-              {
-                "Ref": "Region"
-              }
-
-            ]
-          ]
-        }
-      }
-    },
-    "OutputBucket": {
-      "Type": "AWS::S3::Bucket",
-      "Condition": "CreateOutputBucket",
-      "Properties": {
-        "BucketName": {
-          "Fn::Join": [
-            "-",
-            [
-              {
-                "Ref": "ServiceName"
-              },
-              {
-                "Ref": "Env"
-              },
-              {
-                "Ref": "Region"
-              }
-
-            ]
-          ]
-        }
-      }
+    "SourceCodeBucketObjectKey": {
+      "Type": "String",
+      "Default": "cf-pytorch-gpu-service-src.zip"
     },
     "ECSTaskExecutionIAMRole": {
-      "Type": "AWS::IAM::Role",
-      "Condition": "CreateECSTaskExecutionIAMRole",
-      "Properties": {
-        "ManagedPolicyArns": [
-          "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-        ],
-        "AssumeRolePolicyDocument": {
-          "Version": "2012-10-17",
-          "Statement": [
-            {
-              "Effect": "Allow",
-              "Principal": {
-                "Service": [
-                  "ecs-tasks.amazonaws.com"
-                ]
-              },
-              "Action": [
-                "sts:AssumeRole"
-              ]
-            }
-          ]
-        },
-        "Path": "/",
-        "RoleName": "ECSTaskExecutionIAMRole"
-      }
-    },
+      "Type": "String",
+      "Default": ""
+    }
+
+  },
+  "Resources": {
     "BatchGPUComputeEnvironment":{
       "Type" : "AWS::Batch::ComputeEnvironment",
       "Properties" : {
@@ -192,14 +102,20 @@
               "Arn"
             ]
           },
-          "MaxvCpus" : 8,
-          "DesiredvCpus": 4,
-          "MinvCpus" : 0,
+          "MaxvCpus" :{
+            "Ref": "MaxvCpus"
+          },
+          "DesiredvCpus": {
+            "Ref": "MinvCpus"
+          },
+          "MinvCpus" : {
+            "Ref": "MinvCpus"
+          },
           "SecurityGroupIds" : [
             {"Ref": "BatchGPUComputeEnvironmentSecurityGroup"}
           ],
           "Subnets" : {
-            "Ref": "PrivateSubnet"
+            "Ref": "PrivateSubnets"
           },
           "Tags" : {
             "Service": {
@@ -388,17 +304,7 @@
           "Ref": "VpcId"
         },
         "SecurityGroupIngress": [
-          {
-            "SourceSecurityGroupId" : {
-              "Fn::ImportValue": {
-                "Fn::Sub": "${Region}-${Env}-BastionSecurityGroup"
-              }
-            },
-            "Description" : "AllIPv6",
-            "FromPort" : -1,
-            "IpProtocol" :  -1,
-            "ToPort" : -1
-          }
+
         ],
         "SecurityGroupEgress": [
           {
@@ -1051,7 +957,7 @@
           }
         ],
         "SubnetId" : {
-          "Fn::Select" : [ 0, "PrivateSubnets" ]
+          "Fn::Select" : [ 0, { "Ref": "PrivateSubnets" }]
         }
       }
     },
@@ -1067,7 +973,7 @@
           }
         ],
         "SubnetId" : {
-          "Fn::Select" : [ 1, "PrivateSubnets" ]
+          "Fn::Select" : [ 1, { "Ref": "PrivateSubnets" }]
         }
       }
     },
@@ -1083,7 +989,7 @@
           }
         ],
         "SubnetId" : {
-          "Fn::Select" : [ 2, "PrivateSubnets" ]
+          "Fn::Select" : [ 2, { "Ref": "PrivateSubnets" }]
         }
       }
     },
@@ -1160,7 +1066,7 @@
                   "Category": "Source",
                   "Owner": "AWS",
                   "Version": 1,
-                  "Provider": "CodeStarSourceConnection"
+                  "Provider": "S3"
                 },
                 "OutputArtifacts": [
                   {
@@ -1168,24 +1074,11 @@
                   }
                 ],
                 "Configuration": {
-                  "ConnectionArn": {
-                    "Ref": "CodeStarConnectionARN"
+                  "S3Bucket": {
+                    "Ref": "SourceCodeBucket"
                   },
-                  "FullRepositoryId": {
-                    "Fn::Join": [
-                      "/",
-                      [
-                        {
-                          "Ref": "GitHubOwner"
-                        },
-                        {
-                          "Ref": "GithubProjectName"
-                        }
-                      ]
-                    ]
-                  },
-                  "BranchName": {
-                    "Ref": "GithubSourceBranch"
+                  "S3ObjectKey": {
+                    "Ref": "SourceCodeBucketObjectKey"
                   }
                 },
                 "RunOrder": 1
